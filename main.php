@@ -5,10 +5,99 @@
  * Version: 1.2.0
  * Author: Yassir Zbida
  * Text Domain: made-in-china-app-sync
+ * Domain Path: /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
+}
+
+/**
+ * Load plugin text domain for translations
+ */
+add_action( 'plugins_loaded', 'mic_load_textdomain' );
+
+function mic_load_textdomain() {
+    load_plugin_textdomain( 'made-in-china-app-sync', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+}
+
+/**
+ * Enqueue admin assets (CSS and JS)
+ */
+add_action( 'admin_enqueue_scripts', 'mic_enqueue_admin_assets' );
+
+function mic_enqueue_admin_assets( $hook ) {
+    // Only load on our plugin pages
+    if ( strpos( $hook, 'mic-' ) === false && $hook !== 'toplevel_page_mic-app-sync' ) {
+        return;
+    }
+    
+    $plugin_url = plugin_dir_url( __FILE__ );
+    $plugin_version = '1.2.0';
+    
+    // Enqueue CSS
+    wp_enqueue_style(
+        'mic-admin-css',
+        $plugin_url . 'assets/css/admin.css',
+        array(),
+        $plugin_version
+    );
+    
+    // Enqueue Remix Icons
+    wp_enqueue_style(
+        'remix-icons',
+        'https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css',
+        array(),
+        '3.5.0'
+    );
+    
+    // Enqueue Chart.js for analytics page
+    if ( $hook === 'mic-app-sync_page_mic-analytics' ) {
+        wp_enqueue_script(
+            'chart-js',
+            'https://cdn.jsdelivr.net/npm/chart.js',
+            array(),
+            '3.9.1',
+            true
+        );
+    }
+    
+    // Enqueue our admin JavaScript
+    wp_enqueue_script(
+        'mic-admin-js',
+        $plugin_url . 'assets/js/admin.js',
+        array( 'jquery' ),
+        $plugin_version,
+        true
+    );
+    
+    // Localize script with translated strings
+    wp_localize_script( 'mic-admin-js', 'micStrings', array(
+        'testing' => __( 'Testing...', 'made-in-china-app-sync' ),
+        'testingConnection' => __( 'Testing connection...', 'made-in-china-app-sync' ),
+        'connectionSuccessful' => __( 'Connection successful! Laravel app is responding.', 'made-in-china-app-sync' ),
+        'connectionFailed' => __( 'Connection failed:', 'made-in-china-app-sync' ),
+        'connectionError' => __( 'Connection error:', 'made-in-china-app-sync' ),
+        'unknownError' => __( 'Unknown error', 'made-in-china-app-sync' ),
+        'testConnection' => __( 'Test Connection', 'made-in-china-app-sync' ),
+        'manualSyncConfirm' => __( 'Are you sure you want to manually sync this order to the Laravel app?', 'made-in-china-app-sync' ),
+        'manualSyncUrl' => wp_nonce_url( admin_url( 'admin-ajax.php?action=mic_manual_sync&order_id=' ), 'mic_manual_sync' ),
+        'willSync' => __( 'Will sync', 'made-in-china-app-sync' ),
+        'wontSync' => __( 'Won\'t sync', 'made-in-china-app-sync' ),
+        'skuWarning' => __( '⚠️ This product has no SKU and will not sync with the Made in China Laravel app.\n\nDo you want to continue anyway?', 'made-in-china-app-sync' ),
+        'ajaxurl' => admin_url( 'admin-ajax.php' )
+    ) );
+    
+    // Localize script for logs page
+    wp_localize_script( 'mic-admin-js', 'micLogsStrings', array(
+        'enterDays' => __( 'Enter number of days to keep logs (0 = clear all logs, 30 = keep last 30 days):', 'made-in-china-app-sync' ),
+        'validNumber' => __( 'Please enter a valid number (0 or higher)', 'made-in-china-app-sync' ),
+        'clearAllConfirm' => __( 'Are you sure you want to clear ALL sync logs? This cannot be undone.', 'made-in-china-app-sync' ),
+        'clearOldConfirm' => __( 'Are you sure you want to clear logs older than %d days? This cannot be undone.', 'made-in-china-app-sync' ),
+        'error' => __( 'Error:', 'made-in-china-app-sync' ),
+        'errorClearing' => __( 'Error clearing logs:', 'made-in-china-app-sync' ),
+        'nonce' => wp_create_nonce( 'mic_clear_logs' )
+    ) );
 }
 
 /**
@@ -334,7 +423,7 @@ function mic_admin_page() {
     if ( isset( $_POST['submit'] ) && wp_verify_nonce( $_POST['mic_nonce'], 'mic_save_settings' ) ) {
         update_option( 'mic_laravel_app_url', sanitize_url( $_POST['laravel_app_url'] ) );
         update_option( 'mic_webhook_secret', sanitize_text_field( $_POST['webhook_secret'] ) );
-        echo '<div class="notice notice-success is-dismissible"><p><i class="ri-checkbox-circle-line"></i> Settings saved successfully!</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p><i class="ri-checkbox-circle-line"></i> ' . __( 'Settings saved successfully!', 'made-in-china-app-sync' ) . '</p></div>';
     }
 
     $laravel_url = get_option( 'mic_laravel_app_url', '' );
@@ -342,133 +431,27 @@ function mic_admin_page() {
     $is_configured = mic_is_configured();
     
     ?>
-    <!-- Load Remix Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    
-    <style>
-        .mic-admin-header {
-            background: #a444ff;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .mic-admin-header h1 {
-            color: white;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .mic-status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .mic-status-configured {
-            background: #d1f2eb;
-            color: #0d7049;
-        }
-        .mic-status-not-configured {
-            background: #fef2e7;
-            color: #b7791f;
-        }
-        .mic-card {
-            background: white;
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .mic-button {
-            background: #a444ff;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-        .mic-button:hover {
-            background: #8b35e6;
-            color: white;
-        }
-        .mic-button:disabled {
-            background: #a0a0a0;
-            cursor: not-allowed;
-        }
-        .mic-input {
-            width: 100%;
-            max-width: 400px;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .mic-guide {
-            background: #f8f9fa;
-            border: 1px solid #e5e7eb ;
-			border-radius : 12px ;
-            padding: 15px 20px;
-            margin: 15px 0;
-        }
-        .mic-test-result {
-            margin: 15px 0;
-            padding: 12px;
-            border-radius: 6px;
-            display: none;
-        }
-        .mic-test-success {
-            background: #d1f2eb;
-            color: #0d7049;
-            border: 1px solid #a3d9cc;
-        }
-        .mic-test-error {
-            background: #fdeaea;
-            color: #c53030;
-            border: 1px solid #f5b7b1;
-        }
-        .ri-spin {
-            animation: ri-spin 1s linear infinite;
-        }
-
-        .notice-success {
-            color: #1d2327;
-        }
-        @keyframes ri-spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    </style>
 
     <div class="wrap">
         <div class="mic-admin-header">
             <h1>
                 <i class="ri-cloud-line"></i>
-                Made in China App Sync
+                <?php _e( 'Made in China App Sync', 'made-in-china-app-sync' ); ?>
                 <?php if ( $is_configured ): ?>
                     <span class="mic-status-badge mic-status-configured">
-                    <i class="ri-checkbox-circle-line"></i>Configured
+                    <i class="ri-checkbox-circle-line"></i><?php _e( 'Configured', 'made-in-china-app-sync' ); ?>
                     </span>
                 <?php else: ?>
                     <span class="mic-status-badge mic-status-not-configured">
-                        <i class="ri-error-warning-fill"></i> Needs Configuration
+                        <i class="ri-error-warning-fill"></i> <?php _e( 'Needs Configuration', 'made-in-china-app-sync' ); ?>
                     </span>
                 <?php endif; ?>
             </h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9;">Sync WooCommerce orders with your Laravel ebook application</p>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;"><?php _e( 'Sync WooCommerce orders with your Laravel ebook application', 'made-in-china-app-sync' ); ?></p>
         </div>
         
         <div class="mic-card">
-            <h2><i class="ri-settings-3-line"></i> Configuration</h2>
+            <h2><i class="ri-settings-3-line"></i> <?php _e( 'Configuration', 'made-in-china-app-sync' ); ?></h2>
             
             <form method="post">
                 <?php wp_nonce_field( 'mic_save_settings', 'mic_nonce' ); ?>
@@ -476,7 +459,7 @@ function mic_admin_page() {
                     <tr>
                         <th scope="row">
                             <label for="laravel_app_url">
-                                <i class="ri-global-line"></i> Laravel App URL
+                                <i class="ri-global-line"></i> <?php _e( 'Laravel App URL', 'made-in-china-app-sync' ); ?>
                             </label>
                         </th>
                         <td>
@@ -487,25 +470,25 @@ function mic_admin_page() {
                                    required />
                             <p class="description">
                                 <i class="ri-information-line"></i>
-                                The base URL of your Laravel application (without /dashboard)
+                                <?php _e( 'The base URL of your Laravel application (without /dashboard)', 'made-in-china-app-sync' ); ?>
                             </p>
                         </td>
                     </tr>
                     <tr>
                         <th scope="row">
                             <label for="webhook_secret">
-                                <i class="ri-key-2-line"></i> Webhook Secret
+                                <i class="ri-key-2-line"></i> <?php _e( 'Webhook Secret', 'made-in-china-app-sync' ); ?>
                             </label>
                         </th>
                         <td>
                             <input type="text" id="webhook_secret" name="webhook_secret" 
                                    value="<?php echo esc_attr( $webhook_secret ); ?>" 
                                    class="mic-input" 
-                                   placeholder="Enter your secure webhook secret"
+                                   placeholder="<?php _e( 'Enter your secure webhook secret', 'made-in-china-app-sync' ); ?>"
                                    required />
                             <p class="description">
                                 <i class="ri-information-line"></i>
-                                The secret key configured in your Laravel app's .env file (WOOCOMMERCE_WEBHOOK_SECRET)
+                                <?php _e( 'The secret key configured in your Laravel app\'s .env file (WOOCOMMERCE_WEBHOOK_SECRET)', 'made-in-china-app-sync' ); ?>
                             </p>
                         </td>
                     </tr>
@@ -513,88 +496,49 @@ function mic_admin_page() {
                 
                 <p class="submit">
                     <button type="submit" name="submit" class="mic-button">
-                        <i class="ri-save-line"></i> Save Settings
+                        <i class="ri-save-line"></i> <?php _e( 'Save Settings', 'made-in-china-app-sync' ); ?>
                     </button>
                 </p>
             </form>
         </div>
         
         <div class="mic-card">
-            <h2><i class="ri-pulse-line"></i> Connection Test</h2>
-            <p>Test the connection to your Laravel application:</p>
-            <button type="button" class="mic-button" onclick="testConnection()" id="test-btn">
-                <i class="ri-wifi-line"></i> Test Connection
+            <h2><i class="ri-pulse-line"></i> <?php _e( 'Connection Test', 'made-in-china-app-sync' ); ?></h2>
+            <p><?php _e( 'Test the connection to your Laravel application:', 'made-in-china-app-sync' ); ?></p>
+            <button type="button" class="mic-button" id="test-btn">
+                <i class="ri-wifi-line"></i> <?php _e( 'Test Connection', 'made-in-china-app-sync' ); ?>
             </button>
             <div id="test-result" class="mic-test-result"></div>
         </div>
         
         <div class="mic-card">
-            <h2><i class="ri-guide-line"></i> Setup Guide</h2>
+            <h2><i class="ri-guide-line"></i> <?php _e( 'Setup Guide', 'made-in-china-app-sync' ); ?></h2>
             
             <div class="mic-guide">
-                <h3><i class="ri-number-1"></i> Configure Laravel App</h3>
-                <p>In your Laravel app's <code>.env</code> file, add:</p>
+                <h3><i class="ri-number-1"></i> <?php _e( 'Configure Laravel App', 'made-in-china-app-sync' ); ?></h3>
+                <p><?php _e( 'In your Laravel app\'s', 'made-in-china-app-sync' ); ?> <code>.env</code> <?php _e( 'file, add:', 'made-in-china-app-sync' ); ?></p>
                 <pre><code>WOOCOMMERCE_ENABLED=true
 WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html( $webhook_secret ?: 'your-secret-here' ); ?></code></pre>
             </div>
             
             <div class="mic-guide">
-                <h3><i class="ri-number-2"></i> Run Migrations</h3>
-                <p>In your Laravel app, run:</p>
+                <h3><i class="ri-number-2"></i> <?php _e( 'Run Migrations', 'made-in-china-app-sync' ); ?></h3>
+                <p><?php _e( 'In your Laravel app, run:', 'made-in-china-app-sync' ); ?></p>
                 <pre><code>php artisan migrate</code></pre>
             </div>
             
             <div class="mic-guide">
-                <h3><i class="ri-number-3"></i> Create Route</h3>
-                <p>Ensure your Laravel app has the sync endpoint:</p>
+                <h3><i class="ri-number-3"></i> <?php _e( 'Create Route', 'made-in-china-app-sync' ); ?></h3>
+                <p><?php _e( 'Ensure your Laravel app has the sync endpoint:', 'made-in-china-app-sync' ); ?></p>
                 <pre><code>Route::post('/api/v1/woocommerce-sync', [WooCommerceController::class, 'sync']);</code></pre>
             </div>
             
             <div class="mic-guide">
-                <h3><i class="ri-number-4"></i> Product SKUs</h3>
-                <p>Make sure your WooCommerce products have SKUs that match your Laravel ebook identifiers.</p>
+                <h3><i class="ri-number-4"></i> <?php _e( 'Product SKUs', 'made-in-china-app-sync' ); ?></h3>
+                <p><?php _e( 'Make sure your WooCommerce products have SKUs that match your Laravel ebook identifiers.', 'made-in-china-app-sync' ); ?></p>
             </div>
         </div>
     </div>
-    
-    <script>
-    function testConnection() {
-        const button = document.getElementById('test-btn');
-        const resultDiv = document.getElementById('test-result');
-        
-        button.disabled = true;
-        button.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Testing...';
-        resultDiv.style.display = 'block';
-        resultDiv.className = 'mic-test-result';
-        resultDiv.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Testing connection...';
-        
-        fetch('<?php echo admin_url( 'admin-ajax.php' ); ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'action=mic_test_connection'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                resultDiv.className = 'mic-test-result mic-test-success';
-                resultDiv.innerHTML = '<i class="ri-check-circle-line"></i> Connection successful! Laravel app is responding.';
-            } else {
-                resultDiv.className = 'mic-test-result mic-test-error';
-                resultDiv.innerHTML = '<i class="ri-error-warning-line"></i> Connection failed: ' + (data.data || 'Unknown error');
-            }
-        })
-        .catch(error => {
-            resultDiv.className = 'mic-test-result mic-test-error';
-            resultDiv.innerHTML = '<i class="ri-error-warning-line"></i> Connection error: ' + error.message;
-        })
-        .finally(() => {
-            button.disabled = false;
-            button.innerHTML = '<i class="ri-wifi-line"></i> Test Connection';
-        });
-    }
-    </script>
     <?php
 }
 
@@ -617,132 +561,36 @@ function mic_logs_page() {
     $total_pages = ceil($total_logs / $per_page);
     
     ?>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    
-    <style>
-        .mic-logs-header {
-            background: #a444ff;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .mic-logs-header h1 {
-            color: white;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .mic-card {
-            background: white;
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .mic-status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .mic-status-success { background: #d1f2eb; color: #0d7049; }
-        .mic-status-failed { background: #fdeaea; color: #c53030; }
-        .mic-status-pending { background: #fef2e7; color: #b7791f; }
-        .mic-logs-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        .mic-logs-table th,
-        .mic-logs-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e1e5e9;
-        }
-        .mic-logs-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-        .mic-logs-table tr:hover {
-            background: #f8f9fa;
-        }
-        .mic-filter-bar {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-        .mic-pagination {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-        .mic-pagination a, .mic-pagination span {
-            padding: 8px 12px;
-            border: 1px solid #e1e5e9;
-            border-radius: 4px;
-            text-decoration: none;
-            color: #333;
-        }
-        .mic-pagination .current {
-            background: #a444ff;
-            color: white;
-            border-color: #a444ff;
-        }
-        .mic-expandable {
-            cursor: pointer;
-        }
-        .mic-expanded-data {
-            display: none;
-            margin-top: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-        }
-    </style>
 
     <div class="wrap">
         <div class="mic-logs-header">
             <h1>
                 <i class="ri-file-list-3-line"></i>
-                Sync Logs
+                <?php _e( 'Sync Logs', 'made-in-china-app-sync' ); ?>
             </h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9;">Track all synchronization attempts and their status</p>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;"><?php _e( 'Track all synchronization attempts and their status', 'made-in-china-app-sync' ); ?></p>
         </div>
         
         <div class="mic-card">
             <div class="mic-filter-bar">
                 <form method="get" style="display: flex; gap: 10px; align-items: center;">
                     <input type="hidden" name="page" value="mic-sync-logs">
-                    <label for="status-filter"><i class="ri-filter-line"></i> Filter by status:</label>
+                    <label for="status-filter"><i class="ri-filter-line"></i> <?php _e( 'Filter by status:', 'made-in-china-app-sync' ); ?></label>
                     <select name="status" id="status-filter">
-                        <option value="">All Status</option>
-                        <option value="success" <?php selected($status_filter, 'success'); ?>>Success</option>
-                        <option value="failed" <?php selected($status_filter, 'failed'); ?>>Failed</option>
-                        <option value="pending" <?php selected($status_filter, 'pending'); ?>>Pending</option>
+                        <option value=""><?php _e( 'All Status', 'made-in-china-app-sync' ); ?></option>
+                        <option value="success" <?php selected($status_filter, 'success'); ?>><?php _e( 'Success', 'made-in-china-app-sync' ); ?></option>
+                        <option value="failed" <?php selected($status_filter, 'failed'); ?>><?php _e( 'Failed', 'made-in-china-app-sync' ); ?></option>
+                        <option value="pending" <?php selected($status_filter, 'pending'); ?>><?php _e( 'Pending', 'made-in-china-app-sync' ); ?></option>
                     </select>
-                    <button type="submit" class="button">Filter</button>
+                    <button type="submit" class="button"><?php _e( 'Filter', 'made-in-china-app-sync' ); ?></button>
                     <?php if (!empty($status_filter)): ?>
-                        <a href="<?php echo admin_url('admin.php?page=mic-sync-logs'); ?>" class="button">Clear</a>
+                        <a href="<?php echo admin_url('admin.php?page=mic-sync-logs'); ?>" class="button"><?php _e( 'Clear', 'made-in-china-app-sync' ); ?></a>
                     <?php endif; ?>
                 </form>
                 
                 <div style="margin-left: auto;">
-                    <button type="button" class="button button-secondary" onclick="showClearLogsDialog()">
-                        <i class="ri-delete-bin-line"></i> Clear Logs
+                    <button type="button" class="button button-secondary" id="clear-logs-btn">
+                        <i class="ri-delete-bin-line"></i> <?php _e( 'Clear Logs', 'made-in-china-app-sync' ); ?>
                     </button>
                 </div>
             </div>
@@ -750,19 +598,19 @@ function mic_logs_page() {
             <?php if (empty($logs)): ?>
                 <div style="text-align: center; padding: 40px;">
                     <i class="ri-inbox-line" style="font-size: 48px; color: #ccc;"></i>
-                    <p>No sync logs found.</p>
+                    <p><?php _e( 'No sync logs found.', 'made-in-china-app-sync' ); ?></p>
                 </div>
             <?php else: ?>
                 <table class="mic-logs-table">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Products</th>
-                            <th>Status</th>
-                            <th>Response</th>
-                            <th>Time</th>
-                            <th>Duration</th>
+                            <th><?php _e( 'Order ID', 'made-in-china-app-sync' ); ?></th>
+                            <th><?php _e( 'Customer', 'made-in-china-app-sync' ); ?></th>
+                            <th><?php _e( 'Products', 'made-in-china-app-sync' ); ?></th>
+                            <th><?php _e( 'Status', 'made-in-china-app-sync' ); ?></th>
+                            <th><?php _e( 'Response', 'made-in-china-app-sync' ); ?></th>
+                            <th><?php _e( 'Time', 'made-in-china-app-sync' ); ?></th>
+                            <th><?php _e( 'Duration', 'made-in-china-app-sync' ); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -773,7 +621,7 @@ function mic_logs_page() {
                                     <br>
                                     <small>
                                         <a href="<?php echo admin_url("post.php?post={$log->order_id}&action=edit"); ?>" target="_blank">
-                                            <i class="ri-external-link-line"></i> View Order
+                                            <i class="ri-external-link-line"></i> <?php _e( 'View Order', 'made-in-china-app-sync' ); ?>
                                         </a>
                                     </small>
                                 </td>
@@ -787,8 +635,8 @@ function mic_logs_page() {
                                     $products = json_decode($log->products_data, true);
                                     if (!empty($products)):
                                     ?>
-                                        <span class="mic-expandable" onclick="toggleExpanded(this)">
-                                            <i class="ri-eye-line"></i> <?php echo count($products); ?> product(s)
+                                        <span class="mic-expandable">
+                                            <i class="ri-eye-line"></i> <?php echo count($products); ?> <?php _e( 'product(s)', 'made-in-china-app-sync' ); ?>
                                         </span>
                                         <div class="mic-expanded-data">
                                             <?php foreach ($products as $product): ?>
@@ -796,7 +644,7 @@ function mic_logs_page() {
                                             <?php endforeach; ?>
                                         </div>
                                     <?php else: ?>
-                                        <span style="color: #999;">No products</span>
+                                        <span style="color: #999;"><?php _e( 'No products', 'made-in-china-app-sync' ); ?></span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -816,8 +664,8 @@ function mic_logs_page() {
                                 <td>
                                     <div><?php echo esc_html($log->response_message); ?></div>
                                     <?php if (!empty($log->response_data) && $log->response_data !== $log->response_message): ?>
-                                        <span class="mic-expandable" onclick="toggleExpanded(this)">
-                                            <i class="ri-code-line"></i> Response Data
+                                        <span class="mic-expandable">
+                                            <i class="ri-code-line"></i> <?php _e( 'Response Data', 'made-in-china-app-sync' ); ?>
                                         </span>
                                         <div class="mic-expanded-data">
                                             <?php echo esc_html($log->response_data); ?>
@@ -851,7 +699,7 @@ function mic_logs_page() {
                         if ($current_page > 1):
                         ?>
                             <a href="<?php echo $base_url . '&paged=' . ($current_page - 1); ?>">
-                                <i class="ri-arrow-left-line"></i> Previous
+                                <i class="ri-arrow-left-line"></i> <?php _e( 'Previous', 'made-in-china-app-sync' ); ?>
                             </a>
                         <?php endif; ?>
                         
@@ -865,7 +713,7 @@ function mic_logs_page() {
                         
                         <?php if ($current_page < $total_pages): ?>
                             <a href="<?php echo $base_url . '&paged=' . ($current_page + 1); ?>">
-                                Next <i class="ri-arrow-right-line"></i>
+                                <?php _e( 'Next', 'made-in-china-app-sync' ); ?> <i class="ri-arrow-right-line"></i>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -873,58 +721,6 @@ function mic_logs_page() {
             <?php endif; ?>
         </div>
     </div>
-    
-    <script>
-    function toggleExpanded(element) {
-        const expandedData = element.nextElementSibling;
-        if (expandedData.style.display === 'none' || expandedData.style.display === '') {
-            expandedData.style.display = 'block';
-            element.innerHTML = element.innerHTML.replace('ri-eye-line', 'ri-eye-off-line');
-        } else {
-            expandedData.style.display = 'none';
-            element.innerHTML = element.innerHTML.replace('ri-eye-off-line', 'ri-eye-line');
-        }
-    }
-    
-    function showClearLogsDialog() {
-        const days = prompt('Enter number of days to keep logs (0 = clear all logs, 30 = keep last 30 days):', '30');
-        if (days === null) return;
-        
-        const dayNum = parseInt(days);
-        if (isNaN(dayNum) || dayNum < 0) {
-            alert('Please enter a valid number (0 or higher)');
-            return;
-        }
-        
-        const message = dayNum === 0 ? 
-            'Are you sure you want to clear ALL sync logs? This cannot be undone.' :
-            `Are you sure you want to clear logs older than ${dayNum} days? This cannot be undone.`;
-            
-        if (!confirm(message)) return;
-        
-        const formData = new FormData();
-        formData.append('action', 'mic_clear_logs');
-        formData.append('days', dayNum);
-        formData.append('nonce', '<?php echo wp_create_nonce("mic_clear_logs"); ?>');
-        
-        fetch('<?php echo admin_url("admin-ajax.php"); ?>', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.data);
-                location.reload();
-            } else {
-                alert('Error: ' + data.data);
-            }
-        })
-        .catch(error => {
-            alert('Error clearing logs: ' + error.message);
-        });
-    }
-    </script>
     <?php
 }
 
@@ -935,259 +731,14 @@ function mic_analytics_page() {
     $stats = mic_get_sync_stats();
     $success_rate = $stats['total'] > 0 ? round(($stats['success'] / $stats['total']) * 100, 1) : 0;
     ?>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        .mic-analytics-header {
-            background: linear-gradient(135deg, #a444ff 0%, #8b35e6 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin: 20px 0;
-            box-shadow: 0 4px 20px rgba(164, 68, 255, 0.15);
-        }
-        .mic-analytics-header h1 {
-            color: white;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 28px;
-            font-weight: 600;
-        }
-        .mic-analytics-header p {
-            margin: 12px 0 0 0;
-            opacity: 0.9;
-            font-size: 16px;
-        }
-        
-        .mic-card {
-            background: white;
-            border: 1px solid #e8ecf0;
-            border-radius: 12px;
-            padding: 24px;
-            margin: 24px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            transition: box-shadow 0.2s ease;
-        }
-        .mic-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        }
-        .mic-card h2 {
-            margin: 0 0 20px 0;
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a202c;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* Enhanced Stats Grid */
-        .mic-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin: 24px 0;
-        }
-        
-        /* Redesigned Stat Cards */
-        .mic-stat-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-			
-        }
-        
-        .mic-stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        
-        /* Icon and Content Layout */
-        .mic-stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-        .mic-stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-            background: var(--accent-color);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .mic-stat-trend {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-        }
-        
-        .mic-stat-content {
-            text-align: left;
-        }
-        .mic-stat-number {
-            font-size: 36px;
-            font-weight: 700;
-            line-height: 1;
-            margin: 8px 0;
-            color: #1a202c;
-        }
-        .mic-stat-label {
-            color: #6b7280;
-            font-size: 14px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .mic-stat-subtitle {
-            color: #9ca3af;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-        
-        /* Color Variants */
-        .mic-stat-total {
-            --accent-color: #6366f1;
-        }
-        .mic-stat-success {
-            --accent-color: #10b981;
-        }
-        .mic-stat-failed {
-            --accent-color: #ef4444;
-        }
-        .mic-stat-rate {
-            --accent-color: #8b5cf6;
-        }
-        .mic-stat-pending {
-            --accent-color: #f59e0b;
-        }
-        .mic-stat-recent {
-            --accent-color: #06b6d4;
-        }
-        
-        /* Chart Container */
-        .mic-chart-container {
-            position: relative;
-            height: 350px;
-            margin: 24px 0;
-            padding: 20px;
-            background: #fafbfc;
-            border-radius: 8px;
-            border: 1px solid #f1f5f9;
-        }
-        
-        /* Performance Metrics */
-        .mic-performance-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .mic-performance-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
-        }
-        .mic-performance-card .mic-stat-icon {
-            background: rgba(255, 255, 255, 0.2);
-            margin: 0 auto 16px auto;
-        }
-        .mic-performance-card .mic-stat-number {
-            color: white;
-            margin: 12px 0;
-        }
-        .mic-performance-card .mic-stat-label {
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .mic-stats-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            .mic-stat-card {
-                padding: 20px;
-            }
-            .mic-stat-number {
-                font-size: 28px;
-            }
-            .mic-analytics-header {
-                padding: 20px;
-            }
-            .mic-analytics-header h1 {
-                font-size: 24px;
-            }
-        }
-        
-        /* Loading Animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .mic-loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        /* Empty State */
-        .mic-empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6b7280;
-        }
-        .mic-empty-state i {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        .mic-empty-state h3 {
-            margin: 16px 0 8px 0;
-            color: #374151;
-        }
-        
-        /* Success Rate Bar */
-        .mic-success-bar {
-            width: 100%;
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 12px 0;
-        }
-        .mic-success-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #059669);
-            border-radius: 4px;
-            transition: width 0.6s ease;
-        }
-    </style>
 
     <div class="wrap">
         <div class="mic-analytics-header">
             <h1>
                 <i class="ri-bar-chart-line"></i>
-                Analytics Dashboard
+                <?php _e( 'Analytics Dashboard', 'made-in-china-app-sync' ); ?>
             </h1>
-            <p>Comprehensive sync performance and statistics overview</p>
+            <p><?php _e( 'Comprehensive sync performance and statistics overview', 'made-in-china-app-sync' ); ?></p>
         </div>
         
         <!-- Enhanced Stats Grid -->
@@ -1198,12 +749,12 @@ function mic_analytics_page() {
                     <div class="mic-stat-icon">
                         <i class="ri-database-2-line"></i>
                     </div>
-                    <div class="mic-stat-trend">All Time</div>
+                    <div class="mic-stat-trend"><?php _e( 'All Time', 'made-in-china-app-sync' ); ?></div>
                 </div>
                 <div class="mic-stat-content">
-                    <div class="mic-stat-label">Total Syncs</div>
+                    <div class="mic-stat-label"><?php _e( 'Total Syncs', 'made-in-china-app-sync' ); ?></div>
                     <div class="mic-stat-number"><?php echo number_format($stats['total']); ?></div>
-                    <div class="mic-stat-subtitle">Total synchronization attempts</div>
+                    <div class="mic-stat-subtitle"><?php _e( 'Total synchronization attempts', 'made-in-china-app-sync' ); ?></div>
                 </div>
             </div>
             
@@ -1214,13 +765,13 @@ function mic_analytics_page() {
                         <i class="ri-checkbox-circle-line"></i>
                     </div>
                     <div class="mic-stat-trend">
-                        <i class="ri-arrow-up-line"></i> Active
+                        <i class="ri-arrow-up-line"></i> <?php _e( 'Active', 'made-in-china-app-sync' ); ?>
                     </div>
                 </div>
                 <div class="mic-stat-content">
-                    <div class="mic-stat-label">Successful</div>
+                    <div class="mic-stat-label"><?php _e( 'Successful', 'made-in-china-app-sync' ); ?></div>
                     <div class="mic-stat-number"><?php echo number_format($stats['success']); ?></div>
-                    <div class="mic-stat-subtitle">Orders synced successfully</div>
+                    <div class="mic-stat-subtitle"><?php _e( 'Orders synced successfully', 'made-in-china-app-sync' ); ?></div>
                 </div>
             </div>
             
@@ -1232,14 +783,14 @@ function mic_analytics_page() {
                     </div>
                     <?php if ($stats['failed'] > 0): ?>
                     <div class="mic-stat-trend" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                        <i class="ri-alert-line"></i> Issues
+                        <i class="ri-alert-line"></i> <?php _e( 'Issues', 'made-in-china-app-sync' ); ?>
                     </div>
                     <?php endif; ?>
                 </div>
                 <div class="mic-stat-content">
-                    <div class="mic-stat-label">Failed</div>
+                    <div class="mic-stat-label"><?php _e( 'Failed', 'made-in-china-app-sync' ); ?></div>
                     <div class="mic-stat-number"><?php echo number_format($stats['failed']); ?></div>
-                    <div class="mic-stat-subtitle">Synchronization failures</div>
+                    <div class="mic-stat-subtitle"><?php _e( 'Synchronization failures', 'made-in-china-app-sync' ); ?></div>
                 </div>
             </div>
             
@@ -1251,21 +802,21 @@ function mic_analytics_page() {
                     </div>
                     <div class="mic-stat-trend">
                         <?php if ($success_rate >= 95): ?>
-                            <i class="ri-trophy-line"></i> Excellent
+                            <i class="ri-trophy-line"></i> <?php _e( 'Excellent', 'made-in-china-app-sync' ); ?>
                         <?php elseif ($success_rate >= 80): ?>
-                            <i class="ri-thumb-up-line"></i> Good
+                            <i class="ri-thumb-up-line"></i> <?php _e( 'Good', 'made-in-china-app-sync' ); ?>
                         <?php else: ?>
-                            <i class="ri-alert-line"></i> Needs Attention
+                            <i class="ri-alert-line"></i> <?php _e( 'Needs Attention', 'made-in-china-app-sync' ); ?>
                         <?php endif; ?>
                     </div>
                 </div>
                 <div class="mic-stat-content">
-                    <div class="mic-stat-label">Success Rate</div>
+                    <div class="mic-stat-label"><?php _e( 'Success Rate', 'made-in-china-app-sync' ); ?></div>
                     <div class="mic-stat-number"><?php echo $success_rate; ?>%</div>
                     <div class="mic-success-bar">
                         <div class="mic-success-fill" style="width: <?php echo $success_rate; ?>%"></div>
                     </div>
-                    <div class="mic-stat-subtitle">Overall sync reliability</div>
+                    <div class="mic-stat-subtitle"><?php _e( 'Overall sync reliability', 'made-in-china-app-sync' ); ?></div>
                 </div>
             </div>
             
@@ -1277,14 +828,14 @@ function mic_analytics_page() {
                     </div>
                     <?php if ($stats['pending'] > 0): ?>
                     <div class="mic-stat-trend" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
-                        <i class="ri-loader-line"></i> Processing
+                        <i class="ri-loader-line"></i> <?php _e( 'Processing', 'made-in-china-app-sync' ); ?>
                     </div>
                     <?php endif; ?>
                 </div>
                 <div class="mic-stat-content">
-                    <div class="mic-stat-label">Pending</div>
+                    <div class="mic-stat-label"><?php _e( 'Pending', 'made-in-china-app-sync' ); ?></div>
                     <div class="mic-stat-number"><?php echo number_format($stats['pending']); ?></div>
-                    <div class="mic-stat-subtitle">Awaiting synchronization</div>
+                    <div class="mic-stat-subtitle"><?php _e( 'Awaiting synchronization', 'made-in-china-app-sync' ); ?></div>
                 </div>
             </div>
             
@@ -1294,12 +845,12 @@ function mic_analytics_page() {
                     <div class="mic-stat-icon">
                         <i class="ri-calendar-line"></i>
                     </div>
-                    <div class="mic-stat-trend">7 Days</div>
+                    <div class="mic-stat-trend"><?php _e( '7 Days', 'made-in-china-app-sync' ); ?></div>
                 </div>
                 <div class="mic-stat-content">
-                    <div class="mic-stat-label">Recent Activity</div>
+                    <div class="mic-stat-label"><?php _e( 'Recent Activity', 'made-in-china-app-sync' ); ?></div>
                     <div class="mic-stat-number"><?php echo number_format($stats['recent']); ?></div>
-                    <div class="mic-stat-subtitle">Syncs in the last week</div>
+                    <div class="mic-stat-subtitle"><?php _e( 'Syncs in the last week', 'made-in-china-app-sync' ); ?></div>
                 </div>
             </div>
         </div>
@@ -1308,8 +859,8 @@ function mic_analytics_page() {
         <div class="mic-card">
             <h2>
                 <i class="ri-line-chart-line"></i> 
-                Daily Sync Activity
-                <span style="font-size: 14px; font-weight: normal; color: #6b7280; margin-left: auto;">Last 7 Days</span>
+                <?php _e( 'Daily Sync Activity', 'made-in-china-app-sync' ); ?>
+                <span style="font-size: 14px; font-weight: normal; color: #6b7280; margin-left: auto;"><?php _e( 'Last 7 Days', 'made-in-china-app-sync' ); ?></span>
             </h2>
             <div class="mic-chart-container">
                 <canvas id="dailyChart"></canvas>
@@ -1320,8 +871,8 @@ function mic_analytics_page() {
         <div class="mic-card">
             <h2>
                 <i class="ri-pie-chart-line"></i> 
-                Sync Status Distribution
-                <span style="font-size: 14px; font-weight: normal; color: #6b7280; margin-left: auto;">Current Overview</span>
+                <?php _e( 'Sync Status Distribution', 'made-in-china-app-sync' ); ?>
+                <span style="font-size: 14px; font-weight: normal; color: #6b7280; margin-left: auto;"><?php _e( 'Current Overview', 'made-in-china-app-sync' ); ?></span>
             </h2>
             <?php if ($stats['total'] > 0): ?>
                 <div class="mic-chart-container">
@@ -1330,8 +881,8 @@ function mic_analytics_page() {
             <?php else: ?>
                 <div class="mic-empty-state">
                     <i class="ri-pie-chart-line"></i>
-                    <h3>No Data Available</h3>
-                    <p>Start by processing some orders to see sync statistics</p>
+                    <h3><?php _e( 'No Data Available', 'made-in-china-app-sync' ); ?></h3>
+                    <p><?php _e( 'Start by processing some orders to see sync statistics', 'made-in-china-app-sync' ); ?></p>
                 </div>
             <?php endif; ?>
         </div>
@@ -1340,8 +891,8 @@ function mic_analytics_page() {
         <div class="mic-card">
             <h2>
                 <i class="ri-speed-line"></i> 
-                Performance Metrics
-                <span style="font-size: 14px; font-weight: normal; color: #6b7280; margin-left: auto;">System Performance</span>
+                <?php _e( 'Performance Metrics', 'made-in-china-app-sync' ); ?>
+                <span style="font-size: 14px; font-weight: normal; color: #6b7280; margin-left: auto;"><?php _e( 'System Performance', 'made-in-china-app-sync' ); ?></span>
             </h2>
             <div class="mic-performance-grid">
                 <div class="mic-performance-card">
@@ -1349,7 +900,7 @@ function mic_analytics_page() {
                         <i class="ri-timer-line"></i>
                     </div>
                     <div class="mic-stat-number"><?php echo number_format($stats['avg_execution_time'], 3); ?>s</div>
-                    <div class="mic-stat-label">Average Execution Time</div>
+                    <div class="mic-stat-label"><?php _e( 'Average Execution Time', 'made-in-china-app-sync' ); ?></div>
                 </div>
                 
                 <?php 
@@ -1360,7 +911,7 @@ function mic_analytics_page() {
                         <i class="ri-flashlight-line"></i>
                     </div>
                     <div class="mic-stat-number"><?php echo $throughput; ?></div>
-                    <div class="mic-stat-label">Orders per Day</div>
+                    <div class="mic-stat-label"><?php _e( 'Orders per Day', 'made-in-china-app-sync' ); ?></div>
                 </div>
                 
                 <?php if ($stats['total'] > 0): ?>
@@ -1377,7 +928,7 @@ function mic_analytics_page() {
                         else echo "D";
                         ?>
                     </div>
-                    <div class="mic-stat-label">Reliability Grade</div>
+                    <div class="mic-stat-label"><?php _e( 'Reliability Grade', 'made-in-china-app-sync' ); ?></div>
                 </div>
                 <?php endif; ?>
             </div>
@@ -1386,19 +937,18 @@ function mic_analytics_page() {
     </div>
     
     <script>
-    // Daily Activity Chart
-    <?php if (!empty($stats['daily'])): ?>
-    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-    new Chart(dailyCtx, {
-        type: 'line',
-        data: {
+    // Initialize charts when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        <?php if (!empty($stats['daily'])): ?>
+        // Daily Activity Chart
+        const dailyData = {
             labels: [
                 <?php foreach (array_reverse($stats['daily']) as $day): ?>
                 '<?php echo date('M j', strtotime($day->date)); ?>',
                 <?php endforeach; ?>
             ],
             datasets: [{
-                label: 'Successful',
+                label: '<?php echo esc_js( __( 'Successful', 'made-in-china-app-sync' ) ); ?>',
                 data: [
                     <?php foreach (array_reverse($stats['daily']) as $day): ?>
                     <?php echo $day->success; ?>,
@@ -1413,7 +963,7 @@ function mic_analytics_page() {
                 pointBorderWidth: 2,
                 pointRadius: 5
             }, {
-                label: 'Failed',
+                label: '<?php echo esc_js( __( 'Failed', 'made-in-china-app-sync' ) ); ?>',
                 data: [
                     <?php foreach (array_reverse($stats['daily']) as $day): ?>
                     <?php echo $day->failed; ?>,
@@ -1428,53 +978,17 @@ function mic_analytics_page() {
                 pointBorderWidth: 2,
                 pointRadius: 5
             }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#6b7280'
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(107, 114, 128, 0.1)'
-                    },
-                    ticks: {
-                        color: '#6b7280'
-                    }
-                }
-            }
+        };
+        
+        if (window.MICCharts) {
+            window.MICCharts.initDailyChart(dailyData);
         }
-    });
-    <?php endif; ?>
-    
-    // Status Distribution Chart
-    <?php if ($stats['total'] > 0): ?>
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Successful', 'Failed', 'Pending'],
+        <?php endif; ?>
+        
+        <?php if ($stats['total'] > 0): ?>
+        // Status Distribution Chart
+        const statusData = {
+            labels: ['<?php echo esc_js( __( 'Successful', 'made-in-china-app-sync' ) ); ?>', '<?php echo esc_js( __( 'Failed', 'made-in-china-app-sync' ) ); ?>', '<?php echo esc_js( __( 'Pending', 'made-in-china-app-sync' ) ); ?>'],
             datasets: [{
                 data: [<?php echo $stats['success']; ?>, <?php echo $stats['failed']; ?>, <?php echo $stats['pending']; ?>],
                 backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
@@ -1482,50 +996,13 @@ function mic_analytics_page() {
                 borderWidth: 3,
                 hoverOffset: 8
             }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '60%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 14
-                        }
-                    }
-                }
-            }
+        };
+        
+        if (window.MICCharts) {
+            window.MICCharts.initStatusChart(statusData);
         }
+        <?php endif; ?>
     });
-    <?php endif; ?>
-    
-    // Animate numbers on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const numbers = document.querySelectorAll('.mic-stat-number');
-        numbers.forEach(number => {
-            const finalValue = parseInt(number.textContent.replace(/[,\s%]/g, ''));
-            if (finalValue > 0 && finalValue < 1000) {
-                animateNumber(number, finalValue);
-            }
-        });
-    });
-    
-    function animateNumber(element, target) {
-        let current = 0;
-        const increment = target / 30;
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
-            }
-            element.textContent = Math.floor(current).toLocaleString();
-        }, 50);
-    }
     </script>
     <?php
 }
@@ -1651,25 +1128,18 @@ function mic_order_meta_box_content( $post ) {
     $sync_status = $order->get_meta( '_laravel_sync_status' );
     
     ?>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <style>
-        .mic-sync-info { margin: 10px 0; }
-        .mic-sync-success { color: #0d7049; }
-        .mic-sync-pending { color: #b7791f; }
-        .mic-sync-error { color: #c53030; }
-    </style>
     
     <?php
     if ( $synced ) {
         echo '<div class="mic-sync-info mic-sync-success">';
-        echo '<p><strong><i class="ri-check-circle-line"></i> Status:</strong> Synced</p>';
-        echo '<p><strong><i class="ri-time-line"></i> Sync Time:</strong> ' . esc_html( $sync_time ) . '</p>';
-        echo '<p><strong><i class="ri-information-line"></i> Status:</strong> ' . esc_html( $sync_status ) . '</p>';
+        echo '<p><strong><i class="ri-check-circle-line"></i> ' . __( 'Status:', 'made-in-china-app-sync' ) . '</strong> ' . __( 'Synced', 'made-in-china-app-sync' ) . '</p>';
+        echo '<p><strong><i class="ri-time-line"></i> ' . __( 'Sync Time:', 'made-in-china-app-sync' ) . '</strong> ' . esc_html( $sync_time ) . '</p>';
+        echo '<p><strong><i class="ri-information-line"></i> ' . __( 'Status:', 'made-in-china-app-sync' ) . '</strong> ' . esc_html( $sync_status ) . '</p>';
         echo '</div>';
     } else {
         echo '<div class="mic-sync-info mic-sync-pending">';
-        echo '<p><strong><i class="ri-time-line"></i> Status:</strong> Not Synced</p>';
-        echo '<p><em>This order will be synced when payment is completed.</em></p>';
+        echo '<p><strong><i class="ri-time-line"></i> ' . __( 'Status:', 'made-in-china-app-sync' ) . '</strong> ' . __( 'Not Synced', 'made-in-china-app-sync' ) . '</p>';
+        echo '<p><em>' . __( 'This order will be synced when payment is completed.', 'made-in-china-app-sync' ) . '</em></p>';
         echo '</div>';
     }
 }
@@ -1685,17 +1155,13 @@ function mic_add_manual_sync_button( $order ) {
     if ( ! $synced && mic_is_configured() ) {
         ?>
         <p>
-            <button type="button" class="button button-secondary" onclick="manualSync(<?php echo $order->get_id(); ?>)">
-                <i class="ri-refresh-line"></i> Sync to Laravel App
+            <button type="button" class="button button-secondary" data-order-id="<?php echo $order->get_id(); ?>">
+                <i class="ri-refresh-line"></i> <?php _e( 'Sync to Laravel App', 'made-in-china-app-sync' ); ?>
             </button>
         </p>
         
         <script>
-        function manualSync(orderId) {
-            if (confirm("Are you sure you want to manually sync this order to the Laravel app?")) {
-                window.location.href = "<?php echo wp_nonce_url( admin_url( 'admin-ajax.php?action=mic_manual_sync&order_id=' ), 'mic_manual_sync' ); ?>" + orderId;
-            }
-        }
+        // Manual sync functionality is now handled by admin.js
         </script>
         <?php
     }
@@ -1731,7 +1197,7 @@ function mic_manual_sync() {
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'mic_add_settings_link' );
 
 function mic_add_settings_link( $links ) {
-    $settings_link = '<a href="' . admin_url( 'admin.php?page=mic-app-sync' ) . '">Settings</a>';
+    $settings_link = '<a href="' . admin_url( 'admin.php?page=mic-app-sync' ) . '">' . __( 'Settings', 'made-in-china-app-sync' ) . '</a>';
     array_unshift( $links, $settings_link );
     return $links;
 }
@@ -1787,9 +1253,9 @@ function mic_admin_notice() {
         
         echo '<div class="notice notice-warning is-dismissible">';
         echo '<p>';
-        echo '<strong>Made in China App Sync:</strong> ';
-        echo 'Please configure the plugin settings to start syncing orders. ';
-        echo '<a href="' . admin_url( 'admin.php?page=mic-app-sync' ) . '">Configure Now</a>';
+        echo '<strong>' . __( 'Made in China App Sync:', 'made-in-china-app-sync' ) . '</strong> ';
+        echo __( 'Please configure the plugin settings to start syncing orders.', 'made-in-china-app-sync' ) . ' ';
+        echo '<a href="' . admin_url( 'admin.php?page=mic-app-sync' ) . '">' . __( 'Configure Now', 'made-in-china-app-sync' ) . '</a>';
         echo '</p>';
         echo '</div>';
     }
@@ -1807,8 +1273,8 @@ function mic_add_sku_validation_notice() {
     
     echo '<div class="options_group" style="border-left: 4px solid #a444ff; padding-left: 12px; background: #f8f9ff;">';
     echo '<p class="form-field">';
-    echo '<strong>Made in China Sync:</strong> ';
-    echo 'This product needs a SKU to sync with your Laravel ebook app.';
+    echo '<strong>' . __( 'Made in China Sync:', 'made-in-china-app-sync' ) . '</strong> ';
+    echo __( 'This product needs a SKU to sync with your Laravel ebook app.', 'made-in-china-app-sync' );
     echo '</p>';
     echo '</div>';
 }
@@ -1823,46 +1289,9 @@ function mic_validate_sku_on_save() {
         return; // Don't add validation if plugin not configured
     }
     ?>
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script>
-    jQuery(document).ready(function($) {
-        // Add visual indicator for SKU field
-        $('#_sku').after('<span id="mic-sku-indicator" style="margin-left: 8px;"></span>');
-        
-        function updateSkuIndicator() {
-            var sku = $('#_sku').val();
-            var indicator = $('#mic-sku-indicator');
-            
-            if (sku && sku.trim() !== '') {
-                indicator.html('<i class="ri-check-circle-line" style="color: #0d7049;"></i> Will sync');
-            } else {
-                indicator.html('<i class="ri-error-warning-line" style="color: #b7791f;"></i> Won\'t sync');
-            }
-        }
-        
-        $('#_sku').on('input blur', updateSkuIndicator);
-        updateSkuIndicator(); // Initial check
-        
-        $('form#post').on('submit', function(e) {
-            var sku = $('#_sku').val();
-            if (!sku || sku.trim() === '') {
-                if (confirm('⚠️ This product has no SKU and will not sync with the Made in China Laravel app.\n\nDo you want to continue anyway?')) {
-                    return true;
-                } else {
-                    e.preventDefault();
-                    $('#_sku').focus();
-                    return false;
-                }
-            }
-        });
-    });
+    // SKU validation functionality is now handled by admin.js
     </script>
-    <style>
-    #mic-sku-indicator {
-        font-size: 12px;
-        font-weight: 500;
-    }
-    </style>
     <?php
 }
 
@@ -1938,7 +1367,7 @@ function mic_bulk_sync_notice() {
         $synced_count = intval( $_REQUEST['mic_synced'] );
         echo '<div class="notice notice-success is-dismissible">';
         echo '<p>';
-        printf( _n( '%d order synced to Laravel app.', '%d orders synced to Laravel app.', $synced_count ), $synced_count );
+        printf( _n( '%d order synced to Laravel app.', '%d orders synced to Laravel app.', $synced_count, 'made-in-china-app-sync' ), $synced_count );
         echo '</p></div>';
     }
 }

@@ -1,0 +1,36 @@
+{
+  "name": "made-in-china-app-sync",
+  "version": "1.2.0",
+  "description": "A professional WordPress plugin that synchronizes WooCommerce paid orders with Laravel ebook applications",
+  "main": "main.php",
+  "scripts": {
+    "build": "echo 'No build process needed for this WordPress plugin'",
+    "test": "echo 'No tests specified'",
+    "lint:css": "echo 'CSS linting not configured'",
+    "lint:js": "echo 'JavaScript linting not configured'"
+  },
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "woocommerce",
+    "laravel",
+    "sync",
+    "ebook",
+    "made-in-china"
+  ],
+  "author": "Yassir Zbida",
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/made-in-china-app-sync.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/made-in-china-app-sync/issues"
+  },
+  "homepage": "https://github.com/your-username/made-in-china-app-sync#readme",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

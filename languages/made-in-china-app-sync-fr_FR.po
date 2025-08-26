@@ -1,0 +1,458 @@
+# French translation for Made in China App Sync
+# Copyright (C) 2024 Yassir Zbida
+# This file is distributed under the same license as the Made in China App Sync package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Made in China App Sync 1.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 12:00+0000\n"
+"PO-Revision-Date: 2024-01-01 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: main.php:347
+msgid "Settings saved successfully!"
+msgstr "Paramètres sauvegardés avec succès !"
+
+#: main.php:466
+msgid "Made in China App Sync"
+msgstr "Synchronisation App Made in China"
+
+#: main.php:469
+msgid "Configured"
+msgstr "Configuré"
+
+#: main.php:473
+msgid "Needs Configuration"
+msgstr "Nécessite une configuration"
+
+#: main.php:477
+msgid "Sync WooCommerce orders with your Laravel ebook application"
+msgstr "Synchroniser les commandes WooCommerce avec votre application Laravel ebook"
+
+#: main.php:481
+msgid "Configuration"
+msgstr "Configuration"
+
+#: main.php:489
+msgid "Laravel App URL"
+msgstr "URL de l'application Laravel"
+
+#: main.php:500
+msgid "The base URL of your Laravel application (without /dashboard)"
+msgstr "L'URL de base de votre application Laravel (sans /dashboard)"
+
+#: main.php:507
+msgid "Webhook Secret"
+msgstr "Secret du Webhook"
+
+#: main.php:514
+msgid "Enter your secure webhook secret"
+msgstr "Entrez votre secret de webhook sécurisé"
+
+#: main.php:518
+msgid "The secret key configured in your Laravel app's .env file (WOOCOMMERCE_WEBHOOK_SECRET)"
+msgstr "La clé secrète configurée dans le fichier .env de votre application Laravel (WOOCOMMERCE_WEBHOOK_SECRET)"
+
+#: main.php:526
+msgid "Save Settings"
+msgstr "Sauvegarder les paramètres"
+
+#: main.php:533
+msgid "Connection Test"
+msgstr "Test de connexion"
+
+#: main.php:534
+msgid "Test the connection to your Laravel application:"
+msgstr "Tester la connexion à votre application Laravel :"
+
+#: main.php:536
+msgid "Test Connection"
+msgstr "Tester la connexion"
+
+#: main.php:542
+msgid "Setup Guide"
+msgstr "Guide d'installation"
+
+#: main.php:545
+msgid "Configure Laravel App"
+msgstr "Configurer l'application Laravel"
+
+#: main.php:546
+msgid "In your Laravel app's"
+msgstr "Dans votre application Laravel"
+
+#: main.php:546
+msgid "file, add:"
+msgstr "fichier, ajoutez :"
+
+#: main.php:552
+msgid "Run Migrations"
+msgstr "Exécuter les migrations"
+
+#: main.php:553
+msgid "In your Laravel app, run:"
+msgstr "Dans votre application Laravel, exécutez :"
+
+#: main.php:558
+msgid "Create Route"
+msgstr "Créer une route"
+
+#: main.php:559
+msgid "Ensure your Laravel app has the sync endpoint:"
+msgstr "Assurez-vous que votre application Laravel a le point de terminaison de synchronisation :"
+
+#: main.php:564
+msgid "Product SKUs"
+msgstr "SKU des produits"
+
+#: main.php:565
+msgid "Make sure your WooCommerce products have SKUs that match your Laravel ebook identifiers."
+msgstr "Assurez-vous que vos produits WooCommerce ont des SKU qui correspondent à vos identifiants d'ebook Laravel."
+
+#: main.php:572
+msgid "Testing..."
+msgstr "Test en cours..."
+
+#: main.php:573
+msgid "Testing connection..."
+msgstr "Test de connexion en cours..."
+
+#: main.php:574
+msgid "Connection successful! Laravel app is responding."
+msgstr "Connexion réussie ! L'application Laravel répond."
+
+#: main.php:575
+msgid "Connection failed:"
+msgstr "Échec de la connexion :"
+
+#: main.php:576
+msgid "Connection error:"
+msgstr "Erreur de connexion :"
+
+#: main.php:577
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
+#: main.php:741
+msgid "Sync Logs"
+msgstr "Journaux de synchronisation"
+
+#: main.php:743
+msgid "Track all synchronization attempts and their status"
+msgstr "Suivre toutes les tentatives de synchronisation et leur statut"
+
+#: main.php:750
+msgid "Filter by status:"
+msgstr "Filtrer par statut :"
+
+#: main.php:752
+msgid "All Status"
+msgstr "Tous les statuts"
+
+#: main.php:753
+msgid "Success"
+msgstr "Succès"
+
+#: main.php:754
+msgid "Failed"
+msgstr "Échec"
+
+#: main.php:755
+msgid "Pending"
+msgstr "En attente"
+
+#: main.php:757
+msgid "Filter"
+msgstr "Filtrer"
+
+#: main.php:759
+msgid "Clear"
+msgstr "Effacer"
+
+#: main.php:765
+msgid "Clear Logs"
+msgstr "Effacer les journaux"
+
+#: main.php:773
+msgid "No sync logs found."
+msgstr "Aucun journal de synchronisation trouvé."
+
+#: main.php:779
+msgid "Order ID"
+msgstr "ID de commande"
+
+#: main.php:780
+msgid "Customer"
+msgstr "Client"
+
+#: main.php:781
+msgid "Products"
+msgstr "Produits"
+
+#: main.php:782
+msgid "Status"
+msgstr "Statut"
+
+#: main.php:783
+msgid "Response"
+msgstr "Réponse"
+
+#: main.php:784
+msgid "Time"
+msgstr "Heure"
+
+#: main.php:785
+msgid "Duration"
+msgstr "Durée"
+
+#: main.php:796
+msgid "View Order"
+msgstr "Voir la commande"
+
+#: main.php:811
+msgid "product(s)"
+msgstr "produit(s)"
+
+#: main.php:819
+msgid "No products"
+msgstr "Aucun produit"
+
+#: main.php:840
+msgid "Response Data"
+msgstr "Données de réponse"
+
+#: main.php:874
+msgid "Previous"
+msgstr "Précédent"
+
+#: main.php:888
+msgid "Next"
+msgstr "Suivant"
+
+#: main.php:910
+msgid "Enter number of days to keep logs (0 = clear all logs, 30 = keep last 30 days):"
+msgstr "Entrez le nombre de jours pour conserver les journaux (0 = effacer tous les journaux, 30 = conserver les 30 derniers jours) :"
+
+#: main.php:911
+msgid "Please enter a valid number (0 or higher)"
+msgstr "Veuillez entrer un nombre valide (0 ou plus)"
+
+#: main.php:912
+msgid "Are you sure you want to clear ALL sync logs? This cannot be undone."
+msgstr "Êtes-vous sûr de vouloir effacer TOUS les journaux de synchronisation ? Cette action ne peut pas être annulée."
+
+#: main.php:913
+msgid "Are you sure you want to clear logs older than %d days? This cannot be undone."
+msgstr "Êtes-vous sûr de vouloir effacer les journaux plus anciens que %d jours ? Cette action ne peut pas être annulée."
+
+#: main.php:914
+msgid "Error:"
+msgstr "Erreur :"
+
+#: main.php:915
+msgid "Error clearing logs:"
+msgstr "Erreur lors de l'effacement des journaux :"
+
+#: main.php:1213
+msgid "Analytics Dashboard"
+msgstr "Tableau de bord analytique"
+
+#: main.php:1215
+msgid "Comprehensive sync performance and statistics overview"
+msgstr "Aperçu complet des performances et statistiques de synchronisation"
+
+#: main.php:1226
+msgid "All Time"
+msgstr "Tout le temps"
+
+#: main.php:1229
+msgid "Total Syncs"
+msgstr "Total des synchronisations"
+
+#: main.php:1231
+msgid "Total synchronization attempts"
+msgstr "Total des tentatives de synchronisation"
+
+#: main.php:1242
+msgid "Active"
+msgstr "Actif"
+
+#: main.php:1246
+msgid "Successful"
+msgstr "Réussi"
+
+#: main.php:1248
+msgid "Orders synced successfully"
+msgstr "Commandes synchronisées avec succès"
+
+#: main.php:1260
+msgid "Issues"
+msgstr "Problèmes"
+
+
+
+#: main.php:1267
+msgid "Synchronization failures"
+msgstr "Échecs de synchronisation"
+
+#: main.php:1279
+msgid "Excellent"
+msgstr "Excellent"
+
+#: main.php:1281
+msgid "Good"
+msgstr "Bon"
+
+#: main.php:1283
+msgid "Needs Attention"
+msgstr "Nécessite une attention"
+
+#: main.php:1288
+msgid "Success Rate"
+msgstr "Taux de succès"
+
+#: main.php:1293
+msgid "Overall sync reliability"
+msgstr "Fiabilité globale de synchronisation"
+
+#: main.php:1305
+msgid "Processing"
+msgstr "Traitement en cours"
+
+
+
+#: main.php:1312
+msgid "Awaiting synchronization"
+msgstr "En attente de synchronisation"
+
+#: main.php:1322
+msgid "7 Days"
+msgstr "7 jours"
+
+#: main.php:1325
+msgid "Recent Activity"
+msgstr "Activité récente"
+
+#: main.php:1327
+msgid "Syncs in the last week"
+msgstr "Synchronisations de la semaine dernière"
+
+#: main.php:1336
+msgid "Daily Sync Activity"
+msgstr "Activité de synchronisation quotidienne"
+
+#: main.php:1337
+msgid "Last 7 Days"
+msgstr "7 derniers jours"
+
+#: main.php:1348
+msgid "Sync Status Distribution"
+msgstr "Distribution du statut de synchronisation"
+
+#: main.php:1349
+msgid "Current Overview"
+msgstr "Aperçu actuel"
+
+#: main.php:1358
+msgid "No Data Available"
+msgstr "Aucune donnée disponible"
+
+#: main.php:1359
+msgid "Start by processing some orders to see sync statistics"
+msgstr "Commencez par traiter quelques commandes pour voir les statistiques de synchronisation"
+
+#: main.php:1368
+msgid "Performance Metrics"
+msgstr "Métriques de performance"
+
+#: main.php:1369
+msgid "System Performance"
+msgstr "Performance du système"
+
+#: main.php:1377
+msgid "Average Execution Time"
+msgstr "Temps d'exécution moyen"
+
+#: main.php:1388
+msgid "Orders per Day"
+msgstr "Commandes par jour"
+
+#: main.php:1405
+msgid "Reliability Grade"
+msgstr "Note de fiabilité"
+
+#: main.php:1815
+msgid "Made in China App Sync:"
+msgstr "Synchronisation App Made in China :"
+
+#: main.php:1816
+msgid "Please configure the plugin settings to start syncing orders."
+msgstr "Veuillez configurer les paramètres du plugin pour commencer à synchroniser les commandes."
+
+#: main.php:1817
+msgid "Configure Now"
+msgstr "Configurer maintenant"
+
+#: main.php:1835
+msgid "Made in China Sync:"
+msgstr "Synchronisation Made in China :"
+
+#: main.php:1836
+msgid "This product needs a SKU to sync with your Laravel ebook app."
+msgstr "Ce produit a besoin d'un SKU pour se synchroniser avec votre application Laravel ebook."
+
+#: main.php:1862
+msgid "Will sync"
+msgstr "Sera synchronisé"
+
+#: main.php:1864
+msgid "Won't sync"
+msgstr "Ne sera pas synchronisé"
+
+#: main.php:1874
+msgid "This product has no SKU and will not sync with the Made in China Laravel app."
+msgstr "Ce produit n'a pas de SKU et ne se synchronisera pas avec l'application Laravel Made in China."
+
+#: main.php:1874
+msgid "Do you want to continue anyway?"
+msgstr "Voulez-vous continuer quand même ?"
+
+#: main.php:1714
+msgid "Sync to Laravel App"
+msgstr "Synchroniser avec l'application Laravel"
+
+#: main.php:1720
+msgid "Are you sure you want to manually sync this order to the Laravel app?"
+msgstr "Êtes-vous sûr de vouloir synchroniser manuellement cette commande avec l'application Laravel ?"
+
+#: main.php:1690
+msgid "Status:"
+msgstr "Statut :"
+
+#: main.php:1690
+msgid "Synced"
+msgstr "Synchronisé"
+
+#: main.php:1691
+msgid "Sync Time:"
+msgstr "Heure de synchronisation :"
+
+#: main.php:1696
+msgid "Not Synced"
+msgstr "Non synchronisé"
+
+#: main.php:1697
+msgid "This order will be synced when payment is completed."
+msgstr "Cette commande sera synchronisée lorsque le paiement sera terminé."
+
+#: main.php:1966
+msgid "%d order synced to Laravel app."
+msgid_plural "%d orders synced to Laravel app."
+msgstr[0] "%d commande synchronisée avec l'application Laravel."
+msgstr[1] "%d commandes synchronisées avec l'application Laravel."
