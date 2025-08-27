@@ -1,7 +1,7 @@
 {
-  "name": "made-in-china-app-sync",
+  "name": "mic-woo-sync",
   "version": "1.2.0",
-  "description": "A professional WordPress plugin that synchronizes WooCommerce paid orders with Laravel ebook applications",
+  "description": "A professional WordPress plugin that synchronizes WooCommerce paid orders with Laravel applications",
   "main": "main.php",
   "scripts": {
     "build": "echo 'No build process needed for this WordPress plugin'",

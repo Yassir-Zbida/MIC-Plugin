@@ -23,20 +23,62 @@
         },
 
         /**
-         * Bind event handlers
+         * Bind event handlers - FIXED SCOPE ISSUE
          */
         bindEvents: function() {
+            const self = this;
+            
+            // Basic connectivity test button
+            $(document).on('click', '#basic-test-btn', function(e) { 
+                e.preventDefault(); 
+                self.basicConnectivityTest(e); 
+            });
+            
             // Connection test button
-            $(document).on('click', '#test-btn', this.testConnection);
+            $(document).on('click', '#test-btn', function(e) { 
+                e.preventDefault(); 
+                self.testConnection(e); 
+            });
             
             // Clear logs button
-            $(document).on('click', '#clear-logs-btn', this.showClearLogsDialog);
+            $(document).on('click', '#clear-logs-btn', function(e) { 
+                e.preventDefault(); 
+                self.showClearLogsDialog(e); 
+            });
             
             // Manual sync button
-            $(document).on('click', '[data-order-id]', this.manualSync);
+            $(document).on('click', '.woo-mic-order-btn', function(e) { 
+                e.preventDefault(); 
+                self.manualSync(e); 
+            });
+            
+            // Order sync buttons (in order meta box)
+            $(document).on('click', '.mic-sync-btn', function(e) { 
+                e.preventDefault(); 
+                self.syncOrder.call(self, e); 
+            });
+            
+            $(document).on('click', '.mic-resync-btn:not([data-log-id])', function(e) { 
+                e.preventDefault(); 
+                self.resyncOrder.call(self, e); 
+            });
+            
+            // Logs retry buttons - FIXED SELECTORS
+            $(document).on('click', '.mic-retry-btn', function(e) { 
+                e.preventDefault(); 
+                self.retrySync.call(self, e); 
+            });
+            
+            $(document).on('click', '.mic-resync-btn[data-log-id]', function(e) { 
+                e.preventDefault(); 
+                self.resyncFromLog.call(self, e); 
+            });
             
             // Expandable content
-            $(document).on('click', '.mic-expandable', this.toggleExpanded);
+            $(document).on('click', '.mic-expandable', function(e) { 
+                e.preventDefault(); 
+                self.toggleExpanded(e); 
+            });
         },
 
         /**
@@ -70,11 +112,45 @@
         },
 
         /**
+         * Basic connectivity test to Laravel app
+         */
+        basicConnectivityTest: function(e) {
+            const button = $('#basic-test-btn');
+            const resultDiv = $('#basic-test-result');
+            
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> Testing basic connectivity...');
+            resultDiv.show();
+            resultDiv.removeClass('mic-test-success mic-test-error');
+            resultDiv.html('<i class="ri-loader-4-line ri-spin"></i> Testing basic connectivity...');
+            
+            $.post(ajaxurl, {
+                action: 'mic_basic_test',
+                nonce: micStrings.nonce
+            })
+            .done(function(response) {
+                if (response.success) {
+                    resultDiv.removeClass('mic-test-error').addClass('mic-test-success');
+                    resultDiv.html('<i class="ri-check-line"></i> ' + response.data);
+                } else {
+                    resultDiv.removeClass('mic-test-success').addClass('mic-test-error');
+                    resultDiv.html('<i class="ri-error-warning-line"></i> ' + response.data);
+                }
+            })
+            .fail(function(xhr, status, error) {
+                resultDiv.removeClass('mic-test-success').addClass('mic-test-error');
+                resultDiv.html('<i class="ri-error-warning-line"></i> Basic connectivity test failed: ' + error);
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html('<i class="ri-link"></i> Basic Connectivity Test');
+            });
+        },
+        
+        /**
          * Test connection to Laravel app
          */
         testConnection: function(e) {
-            e.preventDefault();
-            
             const button = $('#test-btn');
             const resultDiv = $('#test-result');
             
@@ -85,103 +161,316 @@
             resultDiv.html('<i class="ri-loader-4-line ri-spin"></i> ' + micStrings.testingConnection);
             
             $.post(ajaxurl, {
-                action: 'mic_test_connection'
+                action: 'mic_test_connection',
+                nonce: micStrings.nonce
             })
             .done(function(response) {
                 if (response.success) {
-                    resultDiv.addClass('mic-test-success');
-                    resultDiv.html('<i class="ri-check-circle-line"></i> ' + micStrings.connectionSuccessful);
+                    resultDiv.removeClass('mic-test-error').addClass('mic-test-success');
+                    resultDiv.html('<i class="ri-check-line"></i> ' + response.data.message);
                 } else {
-                    resultDiv.addClass('mic-test-error');
-                    resultDiv.html('<i class="ri-error-warning-line"></i> ' + micStrings.connectionFailed + ' ' + (response.data || micStrings.unknownError));
+                    resultDiv.removeClass('mic-test-success').addClass('mic-test-error');
+                    resultDiv.html('<i class="ri-error-warning-line"></i> ' + response.data);
                 }
             })
             .fail(function(xhr, status, error) {
-                resultDiv.addClass('mic-test-error');
+                resultDiv.removeClass('mic-test-success').addClass('mic-test-error');
                 resultDiv.html('<i class="ri-error-warning-line"></i> ' + micStrings.connectionError + ' ' + error);
             })
             .always(function() {
                 button.prop('disabled', false);
-                button.html('<i class="ri-wifi-line"></i> ' + micStrings.testConnection);
+                button.html(micStrings.testConnection);
             });
         },
 
         /**
-         * Show clear logs dialog
+         * Show clear logs confirmation dialog
          */
         showClearLogsDialog: function(e) {
-            e.preventDefault();
-            
             const days = prompt(micLogsStrings.enterDays, '30');
             if (days === null) return;
             
-            const dayNum = parseInt(days);
-            if (isNaN(dayNum) || dayNum < 0) {
+            const daysNum = parseInt(days);
+            if (isNaN(daysNum) || daysNum < 0) {
                 alert(micLogsStrings.validNumber);
                 return;
             }
             
-            const message = dayNum === 0 ? 
-                micLogsStrings.clearAllConfirm :
-                micLogsStrings.clearOldConfirm.replace('%d', dayNum);
-                
-            if (!confirm(message)) return;
+            let confirmMessage;
+            if (daysNum === 0) {
+                confirmMessage = micLogsStrings.clearAllConfirm;
+            } else {
+                confirmMessage = micLogsStrings.clearOldConfirm.replace('%d', daysNum);
+            }
             
-            const formData = new FormData();
-            formData.append('action', 'mic_clear_logs');
-            formData.append('days', dayNum);
-            formData.append('nonce', micLogsStrings.nonce);
+            if (confirm(confirmMessage)) {
+                this.clearLogs(daysNum);
+            }
+        },
+
+        /**
+         * Clear logs based on days parameter
+         */
+        clearLogs: function(days) {
+            const button = $('#clear-logs-btn');
+            const originalText = button.html();
             
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> Clearing...');
+            
+            $.post(ajaxurl, {
+                action: 'mic_clear_logs',
+                days: days,
+                nonce: micLogsStrings.nonce
             })
             .done(function(response) {
                 if (response.success) {
-                    alert(response.data);
-                    location.reload();
+                    MICUtils.showNotification(response.data.message, 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
                 } else {
-                    alert(micLogsStrings.error + ' ' + response.data);
+                    MICUtils.showNotification(micLogsStrings.error + ' ' + response.data, 'error');
                 }
             })
             .fail(function(xhr, status, error) {
-                alert(micLogsStrings.errorClearing + ' ' + error);
+                MICUtils.showNotification(micLogsStrings.errorClearing + ' ' + error, 'error');
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html(originalText);
             });
         },
 
         /**
-         * Manual sync functionality
+         * Manual sync from order page
          */
         manualSync: function(e) {
-            e.preventDefault();
+            const button = $(e.target);
+            const orderId = button.data('order-id');
             
-            const orderId = $(this).data('order-id');
+            if (!confirm(micStrings.manualSyncConfirm)) {
+                return;
+            }
             
-            if (confirm(micStrings.manualSyncConfirm)) {
-                const url = micStrings.manualSyncUrl + orderId;
-                window.location.href = url;
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> ' + micStrings.willSync);
+            
+            // Redirect to manual sync URL
+            window.location.href = micStrings.manualSyncUrl + orderId;
+        },
+
+        /**
+         * Sync order from order meta box
+         */
+        syncOrder: function(e) {
+            console.log('Sync order button clicked');
+            
+            const button = $(e.target);
+            const orderId = button.data('order-id');
+            const originalText = button.html();
+            
+            console.log('Sync order - Order ID:', orderId);
+            
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> Syncing...');
+            
+            $.post(ajaxurl, {
+                action: 'mic_sync_order',
+                order_id: orderId,
+                nonce: micStrings.syncOrderNonce
+            })
+            .done(function(response) {
+                console.log('Sync order response:', response);
+                if (response.success) {
+                    MICUtils.showNotification(response.data.message, 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    MICUtils.showNotification('Sync failed: ' + response.data, 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Sync order AJAX failed:', {xhr, status, error});
+                MICUtils.showNotification('Sync failed: ' + error, 'error');
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html(originalText);
+            });
+        },
+
+        /**
+         * Resync order from order meta box
+         */
+        resyncOrder: function(e) {
+            console.log('Resync order button clicked');
+            
+            const button = $(e.target);
+            const orderId = button.data('order-id');
+            const originalText = button.html();
+            
+            console.log('Resync order - Order ID:', orderId);
+            
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> Resyncing...');
+            
+            $.post(ajaxurl, {
+                action: 'mic_sync_order',
+                order_id: orderId,
+                nonce: micStrings.syncOrderNonce
+            })
+            .done(function(response) {
+                console.log('Resync order response:', response);
+                if (response.success) {
+                    MICUtils.showNotification(response.data.message, 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    MICUtils.showNotification('Resync failed: ' + response.data, 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Resync order AJAX failed:', {xhr, status, error});
+                MICUtils.showNotification('Resync failed: ' + error, 'error');
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html(originalText);
+            });
+        },
+
+        /**
+         * Retry failed sync from logs
+         */
+        retrySync: function(e) {
+            console.log('Retry sync button clicked');
+            
+            const button = $(e.target);
+            const orderId = button.data('order-id');
+            const logId = button.data('log-id');
+            const originalText = button.html();
+            
+            console.log('Retry sync - Order ID:', orderId, 'Log ID:', logId);
+            
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> Retrying...');
+            
+            $.post(ajaxurl, {
+                action: 'mic_retry_sync',
+                order_id: orderId,
+                log_id: logId,
+                nonce: micStrings.retrySyncNonce
+            })
+            .done(function(response) {
+                console.log('Retry sync response:', response);
+                if (response.success) {
+                    MICUtils.showNotification(response.data.message, 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    MICUtils.showNotification('Retry failed: ' + response.data, 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Retry sync AJAX failed:', {xhr, status, error});
+                MICUtils.showNotification('Retry failed: ' + error, 'error');
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html(originalText);
+            });
+        },
+
+        /**
+         * Resync from logs
+         */
+        resyncFromLog: function(e) {
+            console.log('Resync from log button clicked');
+            
+            const button = $(e.target);
+            const orderId = button.data('order-id');
+            const logId = button.data('log-id');
+            const originalText = button.html();
+            
+            console.log('Resync from log - Order ID:', orderId, 'Log ID:', logId);
+            
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> Resyncing...');
+            
+            $.post(ajaxurl, {
+                action: 'mic_retry_sync',
+                order_id: orderId,
+                log_id: logId,
+                nonce: micStrings.retrySyncNonce
+            })
+            .done(function(response) {
+                console.log('Resync from log response:', response);
+                if (response.success) {
+                    MICUtils.showNotification(response.data.message, 'success');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    MICUtils.showNotification('Resync failed: ' + response.data, 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Resync from log AJAX failed:', {xhr, status, error});
+                MICUtils.showNotification('Resync failed: ' + error, 'error');
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html(originalText);
+            });
+        },
+
+        /**
+         * Toggle expandable content
+         */
+        toggleExpanded: function(e) {
+            console.log('Toggle expandable clicked:', e.target);
+            const element = $(e.target);
+            const content = element.next('.mic-expandable-content');
+            
+            console.log('Element:', element);
+            console.log('Content found:', content.length);
+            console.log('Content visible:', content.is(':visible'));
+            
+            if (content.is(':visible')) {
+                content.slideUp();
+                element.removeClass('mic-expanded');
+                console.log('Content hidden');
+            } else {
+                content.slideDown();
+                element.addClass('mic-expanded');
+                console.log('Content shown');
             }
         },
 
         /**
-         * Toggle expanded content
+         * Animate numbers on analytics page
          */
-        toggleExpanded: function(e) {
-            e.preventDefault();
-            
-            const element = $(this);
-            const expandedData = element.next('.mic-expanded-data');
-            
-            if (expandedData.is(':visible')) {
-                expandedData.hide();
-                element.html(element.html().replace('ri-eye-off-line', 'ri-eye-line'));
-            } else {
-                expandedData.show();
-                element.html(element.html().replace('ri-eye-line', 'ri-eye-off-line'));
-            }
+        animateNumbers: function() {
+            $('.mic-stat-value').each(function() {
+                const element = $(this);
+                const finalValue = parseInt(element.text().replace(/[^\d]/g, ''));
+                
+                if (!isNaN(finalValue)) {
+                    element.prop('Counter', 0).animate({
+                        Counter: finalValue
+                    }, {
+                        duration: 1000,
+                        easing: 'swing',
+                        step: function(now) {
+                            element.text(Math.floor(now).toLocaleString());
+                        }
+                    });
+                }
+            });
         },
 
         /**
@@ -189,157 +478,22 @@
          */
         setupSKUValidation: function() {
             const skuField = $('#_sku');
-            const indicator = $('<span id="mic-sku-indicator" style="margin-left: 8px;"></span>');
+            const productForm = $('form#post');
             
-            skuField.after(indicator);
-            
-            function updateSkuIndicator() {
-                const sku = skuField.val();
+            productForm.on('submit', function(e) {
+                const skuValue = skuField.val().trim();
                 
-                if (sku && sku.trim() !== '') {
-                    indicator.html('<i class="ri-check-circle-line" style="color: #0d7049;"></i> ' + micStrings.willSync);
-                } else {
-                    indicator.html('<i class="ri-error-warning-line" style="color: #b7791f;"></i> ' + micStrings.wontSync);
-                }
-            }
-            
-            skuField.on('input blur', updateSkuIndicator);
-            updateSkuIndicator();
-            
-            $('form#post').on('submit', function(e) {
-                const sku = skuField.val();
-                if (!sku || sku.trim() === '') {
-                    if (confirm(micStrings.skuWarning)) {
-                        return true;
-                    } else {
+                if (!skuValue) {
+                    if (!confirm(micStrings.skuWarning)) {
                         e.preventDefault();
-                        skuField.focus();
                         return false;
                     }
                 }
             });
-        },
-
-        /**
-         * Animate numbers on analytics page
-         */
-        animateNumbers: function() {
-            $('.mic-stat-number').each(function() {
-                const element = $(this);
-                const text = element.text();
-                const finalValue = parseInt(text.replace(/[,\s%]/g, ''));
-                
-                if (finalValue > 0 && finalValue < 1000) {
-                    MICAdmin.animateNumber(element, finalValue);
-                }
-            });
-        },
-
-        /**
-         * Animate a single number
-         */
-        animateNumber: function(element, target) {
-            let current = 0;
-            const increment = target / 30;
-            const timer = setInterval(function() {
-                current += increment;
-                if (current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
-                element.text(Math.floor(current).toLocaleString());
-            }, 50);
         }
     };
 
-    /**
-     * Chart.js Integration for Analytics
-     */
-    const MICCharts = {
-        
-        /**
-         * Initialize daily activity chart
-         */
-        initDailyChart: function(data) {
-            if (!data || !data.labels || !data.datasets) return;
-            
-            const ctx = document.getElementById('dailyChart');
-            if (!ctx) return;
-            
-            new Chart(ctx.getContext('2d'), {
-                type: 'line',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#6b7280'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(107, 114, 128, 0.1)'
-                            },
-                            ticks: {
-                                color: '#6b7280'
-                            }
-                        }
-                    }
-                }
-            });
-        },
 
-        /**
-         * Initialize status distribution chart
-         */
-        initStatusChart: function(data) {
-            if (!data || !data.labels || !data.datasets) return;
-            
-            const ctx = document.getElementById('statusChart');
-            if (!ctx) return;
-            
-            new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    };
 
     /**
      * Utility Functions
@@ -389,17 +543,21 @@
     };
 
     /**
-     * Initialize when document is ready
+     * Initialize when document is ready - FIXED VERSION
      */
     $(document).ready(function() {
+        console.log('MIC Admin initializing...');
         MICAdmin.init();
+        
+
     });
+    
+
 
     /**
      * Expose objects to global scope for external access
      */
     window.MICAdmin = MICAdmin;
-    window.MICCharts = MICCharts;
     window.MICUtils = MICUtils;
 
 })(jQuery);

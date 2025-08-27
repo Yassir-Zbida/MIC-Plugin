@@ -1,9 +1,9 @@
-# French translation for Made in China App Sync
+# French translation for MIC Woo to App Sync
 # Copyright (C) 2024 Yassir Zbida
-# This file is distributed under the same license as the Made in China App Sync package.
+# This file is distributed under the same license as the MIC Woo to App Sync package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Made in China App Sync 1.2.0\n"
+"Project-Id-Version: MIC Woo to App Sync 1.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-01-01 12:00+0000\n"
 "PO-Revision-Date: 2024-01-01 12:00+0000\n"
@@ -20,7 +20,7 @@ msgid "Settings saved successfully!"
 msgstr "Paramètres sauvegardés avec succès !"
 
 #: main.php:466
-msgid "Made in China App Sync"
+msgid "MIC Woo to App Sync"
 msgstr "Synchronisation App Made in China"
 
 #: main.php:469
@@ -70,6 +70,144 @@ msgstr "Test de connexion"
 #: main.php:534
 msgid "Test the connection to your Laravel application:"
 msgstr "Tester la connexion à votre application Laravel :"
+
+msgid "Test the connection to your Laravel application. This will verify that your Laravel app is accessible and can receive requests from WooCommerce."
+msgstr "Tester la connexion à votre application Laravel. Cela vérifiera que votre application Laravel est accessible et peut recevoir des requêtes de WooCommerce."
+
+msgid "Note:"
+msgstr "Note :"
+
+msgid "If the test fails but orders are still syncing successfully, the issue might be with the test endpoint or CORS settings. The actual sync functionality may work fine."
+msgstr "Si le test échoue mais que les commandes se synchronisent toujours avec succès, le problème pourrait être avec le point de terminaison de test ou les paramètres CORS. La fonctionnalité de synchronisation réelle peut fonctionner correctement."
+
+msgid "Troubleshooting Tips:"
+msgstr "Conseils de dépannage :"
+
+msgid "Ensure your Laravel app is running and accessible from your WordPress server"
+msgstr "Assurez-vous que votre application Laravel fonctionne et est accessible depuis votre serveur WordPress"
+
+msgid "Check that the route /api/v1/woocommerce-sync exists in your Laravel app"
+msgstr "Vérifiez que la route /api/v1/woocommerce-sync existe dans votre application Laravel"
+
+msgid "Verify CORS settings allow requests from your WordPress domain"
+msgstr "Vérifiez que les paramètres CORS permettent les requêtes depuis votre domaine WordPress"
+
+msgid "Check Laravel logs for any errors when the test request is made"
+msgstr "Vérifiez les journaux Laravel pour toute erreur lors de la requête de test"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Sync Now"
+msgstr "Synchroniser maintenant"
+
+msgid "Resync Order"
+msgstr "Resynchroniser la commande"
+
+msgid "Retry"
+msgstr "Réessayer"
+
+msgid "Resync"
+msgstr "Resynchroniser"
+
+msgid "Plugin Not Configured"
+msgstr "Plugin non configuré"
+
+msgid "Please configure the plugin settings to enable manual sync."
+msgstr "Veuillez configurer les paramètres du plugin pour activer la synchronisation manuelle."
+
+msgid "Configure Plugin"
+msgstr "Configurer le plugin"
+
+msgid "Daily Activity (Last 7 Days)"
+msgstr "Activité quotidienne (7 derniers jours)"
+
+msgid "Sync Status Distribution"
+msgstr "Répartition des statuts de synchronisation"
+
+msgid "Daily Activity Table (Last 7 Days)"
+msgstr "Tableau d'activité quotidienne (7 derniers jours)"
+
+msgid "Charts"
+msgstr "Graphiques"
+
+msgid "No sync data available yet"
+msgstr "Aucune donnée de synchronisation disponible pour le moment"
+
+msgid "Charts will appear here once you start syncing orders"
+msgstr "Les graphiques apparaîtront ici une fois que vous commencerez à synchroniser des commandes"
+
+msgid "TOTAL SYNCS"
+msgstr "TOTAL DES SYNCHRONISATIONS"
+
+msgid "SUCCESSFUL"
+msgstr "RÉUSSI"
+
+msgid "FAILED"
+msgstr "ÉCHEC"
+
+msgid "SUCCESS RATE"
+msgstr "TAUX DE SUCCÈS"
+
+msgid "PENDING"
+msgstr "EN ATTENTE"
+
+msgid "RECENT ACTIVITY"
+msgstr "ACTIVITÉ RÉCENTE"
+
+msgid "All Time"
+msgstr "Toujours"
+
+msgid "↑ Active"
+msgstr "↑ Actif"
+
+msgid "↓ Issue"
+msgstr "↓ Problème"
+
+msgid "▲ Needs Attention"
+msgstr "▲ Nécessite attention"
+
+msgid "⏳ Waiting"
+msgstr "⏳ En attente"
+
+msgid "7 Days"
+msgstr "7 jours"
+
+msgid "Awaiting synchronization"
+msgstr "En attente de synchronisation"
+
+msgid "Loading chart..."
+msgstr "Chargement du graphique..."
+
+msgid "Chart.js not available"
+msgstr "Chart.js non disponible"
+
+msgid "Total Orders"
+msgstr "Total des commandes"
+
+msgid "View Logs"
+msgstr "Voir les journaux"
+
+msgid "Detailed breakdown of synchronization activity by day"
+msgstr "Détail de l'activité de synchronisation par jour"
+
+msgid "Chart.js failed to load. Please refresh the page or check your internet connection."
+msgstr "Chart.js n'a pas pu se charger. Veuillez actualiser la page ou vérifier votre connexion internet."
+
+msgid "Failed to load Chart.js. Please check your internet connection."
+msgstr "Impossible de charger Chart.js. Veuillez vérifier votre connexion internet."
+
+msgid "Charts"
+msgstr "Graphiques"
+
+msgid "No sync data available yet"
+msgstr "Aucune donnée de synchronisation disponible pour le moment"
+
+msgid "Charts will appear here once you start syncing orders"
+msgstr "Les graphiques apparaîtront ici une fois que vous commencerez à synchroniser les commandes"
+
+msgid "Sync Status Distribution"
+msgstr "Distribution du statut de synchronisation"
 
 #: main.php:536
 msgid "Test Connection"
@@ -186,6 +324,9 @@ msgstr "Aucun journal de synchronisation trouvé."
 #: main.php:779
 msgid "Order ID"
 msgstr "ID de commande"
+
+msgid "Order Number"
+msgstr "Numéro de commande"
 
 #: main.php:780
 msgid "Customer"
@@ -388,7 +529,7 @@ msgid "Reliability Grade"
 msgstr "Note de fiabilité"
 
 #: main.php:1815
-msgid "Made in China App Sync:"
+msgid "MIC Woo to App Sync:"
 msgstr "Synchronisation App Made in China :"
 
 #: main.php:1816
@@ -425,7 +566,10 @@ msgstr "Voulez-vous continuer quand même ?"
 
 #: main.php:1714
 msgid "Sync to Laravel App"
-msgstr "Synchroniser avec l'application Laravel"
+msgstr "Synchroniser avec l'application"
+
+msgid "Sync to App"
+msgstr "Synchroniser avec l'application"
 
 #: main.php:1720
 msgid "Are you sure you want to manually sync this order to the Laravel app?"
@@ -456,3 +600,135 @@ msgid "%d order synced to Laravel app."
 msgid_plural "%d orders synced to Laravel app."
 msgstr[0] "%d commande synchronisée avec l'application Laravel."
 msgstr[1] "%d commandes synchronisées avec l'application Laravel."
+
+#: main.php:1380
+msgid "Sync Status"
+msgstr "Statut de synchronisation"
+
+#: main.php:1385
+msgid "Order Synchronization Status"
+msgstr "Statut de synchronisation de la commande"
+
+#: main.php:1386
+msgid "Track the synchronization status of this order with your Laravel application."
+msgstr "Suivez le statut de synchronisation de cette commande avec votre application Laravel."
+
+#: main.php:1390
+msgid "Current Status"
+msgstr "Statut actuel"
+
+#: main.php:1395
+msgid "Synced Successfully"
+msgstr "Synchronisé avec succès"
+
+#: main.php:1400
+msgid "Sync Attempts:"
+msgstr "Tentatives de synchronisation :"
+
+#: main.php:1410
+msgid "Last Error:"
+msgstr "Dernière erreur :"
+
+#: main.php:1420
+msgid "Resync Order"
+msgstr "Resynchroniser la commande"
+
+#: main.php:1421
+msgid "Resync this order to update information in your Laravel app."
+msgstr "Resynchroniser cette commande pour mettre à jour les informations dans votre application Laravel."
+
+#: main.php:1425
+msgid "Sync Now"
+msgstr "Synchroniser maintenant"
+
+#: main.php:1426
+msgid "Manually sync this order to your Laravel application."
+msgstr "Synchroniser manuellement cette commande avec votre application Laravel."
+
+#: main.php:1435
+msgid "Order Details for Sync"
+msgstr "Détails de la commande pour la synchronisation"
+
+#: main.php:1440
+msgid "Customer:"
+msgstr "Client :"
+
+#: main.php:1445
+msgid "Email:"
+msgstr "E-mail :"
+
+#: main.php:1450
+msgid "Total:"
+msgstr "Total :"
+
+#: main.php:1455
+msgid "Status:"
+msgstr "Statut :"
+
+#: main.php:1460
+msgid "Products"
+msgstr "Produits"
+
+#: main.php:1470
+msgid "No SKU"
+msgstr "Aucun SKU"
+
+#: main.php:1475
+msgid "Qty:"
+msgstr "Qté :"
+
+#: main.php:1480
+msgid "No products found in this order."
+msgstr "Aucun produit trouvé dans cette commande."
+
+#: main.php:1380
+msgid "Basic Connectivity Test"
+msgstr "Test de connectivité de base"
+
+#: main.php:1385
+msgid "Full Connection Test"
+msgstr "Test de connexion complet"
+
+#: main.php:1390
+msgid "Testing basic connectivity..."
+msgstr "Test de connectivité de base..."
+
+#: main.php:1395
+msgid "Basic Connectivity Test"
+msgstr "Test de connectivité de base"
+
+#: main.php:1380
+msgid "Testing basic connectivity..."
+msgstr "Test de connectivité de base..."
+
+#: main.php:1385
+msgid "Basic connectivity test failed:"
+msgstr "Le test de connectivité de base a échoué :"
+
+#: main.php:1380
+msgid "Testing..."
+msgstr "Test en cours..."
+
+#: main.php:1385
+msgid "Testing connection..."
+msgstr "Test de connexion en cours..."
+
+#: main.php:1390
+msgid "Connection successful! Laravel app is responding and accepting requests."
+msgstr "Connexion réussie ! L'application Laravel répond et accepte les requêtes."
+
+#: main.php:1395
+msgid "Connection failed:"
+msgstr "La connexion a échoué :"
+
+#: main.php:1400
+msgid "Connection error:"
+msgstr "Erreur de connexion :"
+
+#: main.php:1405
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
+#: main.php:1410
+msgid "Test Connection"
+msgstr "Tester la connexion"

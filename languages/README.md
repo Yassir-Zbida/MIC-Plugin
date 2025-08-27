@@ -1,4 +1,4 @@
-# Multilingual Support for Made in China App Sync
+# Multilingual Support for MIC Woo to App Sync
 
 This plugin now supports multiple languages through WordPress's internationalization (i18n) system.
 
@@ -72,7 +72,7 @@ languages/
 
 ## Technical Details
 
-- **Text Domain:** `made-in-china-app-sync`
+- **Text Domain:** `mic-woo-sync`
 - **Domain Path:** `/languages`
 - **WordPress Hook:** `plugins_loaded` (loads translations early)
 - **Translation Functions Used:**

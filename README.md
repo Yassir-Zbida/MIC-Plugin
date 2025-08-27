@@ -1,6 +1,6 @@
-# Made in China App Sync
+# MIC Woo to App Sync
 
-A professional WordPress plugin that synchronizes WooCommerce paid orders with your Laravel ebook application.
+A professional WordPress plugin that synchronizes WooCommerce paid orders with your Laravel application.
 
 ## Features
 
