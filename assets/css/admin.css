@@ -692,15 +692,7 @@
        overflow: hidden;
    }
    
-   .mic-stat-card::before {
-       content: '';
-       position: absolute;
-       top: 0;
-       left: 0;
-       right: 0;
-       height: 4px;
-       background: linear-gradient(90deg, #a444ff, #8c3ad8);
-   }
+  
    
    .mic-stat-card:hover {
        transform: translateY(-4px);
@@ -880,19 +872,17 @@
    .mic-daily-table {
        width: 100%;
        border-collapse: collapse;
-       margin: 0;
+       margin: 20px 0;
    }
    
    .mic-daily-table th {
-       background: #f8fafc;
-       padding: 20px 16px;
-       text-align: center;
+       background: #f8f9fa;
+       padding: 12px;
+       text-align: left;
        font-weight: 600;
        color: #374151;
-       border-bottom: 1px solid #e5e7eb;
+       border-bottom: 1px solid #e1e5e9;
        font-size: 14px;
-       text-transform: uppercase;
-       letter-spacing: 0.5px;
    }
    
    .mic-daily-table th i {
@@ -902,14 +892,14 @@
    }
    
    .mic-daily-table td {
-       padding: 20px 16px;
-       text-align: center;
-       border-bottom: 1px solid #f1f5f9;
-       vertical-align: middle;
+       padding: 12px;
+       text-align: left;
+       border-bottom: 1px solid #e1e5e9;
+       vertical-align: top;
    }
    
    .mic-daily-table tr:hover {
-       background: #f8fafc;
+       background: #f8f9fa;
    }
    
    .mic-date-cell {
@@ -924,50 +914,55 @@
    }
    
    .mic-date-day {
-       font-size: 24px;
-       font-weight: 700;
+       font-size: 18px;
+       font-weight: 600;
        color: #1d2327;
        line-height: 1;
    }
    
    .mic-date-month {
-       font-size: 14px;
+       font-size: 12px;
        color: #6b7280;
-       text-transform: uppercase;
-       letter-spacing: 0.5px;
+       font-weight: 500;
    }
    
    .mic-number-badge {
        display: inline-block;
-       padding: 8px 16px;
-       border-radius: 20px;
+       padding: 6px 12px;
+       border-radius: 4px;
        font-weight: 600;
-       font-size: 16px;
-       min-width: 60px;
+       font-size: 14px;
+       min-width: 50px;
+       text-align: center;
    }
    
    .mic-total-badge {
        background: rgba(164, 68, 255, 0.1);
        color: #a444ff;
+       border: 1px solid rgba(164, 68, 255, 0.2);
    }
    
    .mic-success-badge {
        background: rgba(0, 163, 42, 0.1);
        color: #00a32a;
+       border: 1px solid rgba(0, 163, 42, 0.2);
    }
    
    .mic-failed-badge {
        background: rgba(214, 54, 56, 0.1);
        color: #d63638;
+       border: 1px solid rgba(214, 54, 56, 0.2);
    }
    
    .mic-rate-badge {
        display: inline-block;
-       padding: 8px 16px;
-       border-radius: 20px;
+       padding: 6px 12px;
+       border-radius: 4px;
        font-weight: 600;
-       font-size: 14px;
-       min-width: 60px;
+       font-size: 13px;
+       min-width: 50px;
+       text-align: center;
+       border: 1px solid;
    }
    
    .mic-no-data {
@@ -1374,5 +1369,341 @@
    .form-table .description {
        font-style: italic;
        color: #666;
+   }
+   
+   /* ==========================================================================
+      Sync Status Column Styles
+      ========================================================================== */
+   
+   .mic-sync-column-info {
+       display: flex;
+       flex-direction: column;
+       gap: 8px;
+       align-items: flex-start;
+   }
+   
+   .mic-sync-status {
+       display: flex;
+       flex-direction: column;
+       gap: 4px;
+   }
+   
+   .mic-sync-badge {
+       display: inline-flex;
+       align-items: center;
+       gap: 4px;
+       padding: 4px 8px;
+       border-radius: 12px;
+       font-size: 11px;
+       font-weight: 600;
+       text-transform: uppercase;
+       letter-spacing: 0.5px;
+   }
+   
+   .mic-synced-badge {
+       background: rgba(0, 163, 42, 0.1);
+       color: #00a32a;
+       border: 1px solid rgba(0, 163, 42, 0.2);
+   }
+   
+   .mic-not-synced-badge {
+       background: rgba(219, 166, 23, 0.1);
+       color: #dba617;
+       border: 1px solid rgba(219, 166, 23, 0.2);
+   }
+   
+   .mic-sync-time {
+       color: #6b7280;
+       font-size: 10px;
+       font-weight: 500;
+   }
+   
+   .mic-sync-btn {
+       background: #f3f4f6;
+       border: 1px solid #d1d5db;
+       color: #374151;
+       padding: 4px 8px;
+       border-radius: 4px;
+       cursor: pointer;
+       font-size: 12px;
+       transition: all 0.2s ease;
+       display: inline-flex;
+       align-items: center;
+       justify-content: center;
+       min-width: 24px;
+       height: 24px;
+   }
+   
+   .mic-sync-btn:hover {
+       background: #e5e7eb;
+       border-color: #9ca3af;
+       color: #1f2937;
+   }
+   
+   .mic-resync-btn {
+       background: rgba(14, 165, 233, 0.1);
+       border-color: rgba(14, 165, 233, 0.2);
+       color: #0ea5e9;
+   }
+   
+   .mic-resync-btn:hover {
+       background: rgba(14, 165, 233, 0.2);
+       border-color: rgba(14, 165, 233, 0.3);
+       color: #0284c7;
+   }
+   
+   .mic-sync-now-btn {
+       background: rgba(164, 68, 255, 0.1);
+       border-color: rgba(164, 68, 255, 0.2);
+       color: #a444ff;
+   }
+   
+   .mic-sync-now-btn:hover {
+       background: rgba(164, 68, 255, 0.2);
+       border-color: rgba(164, 68, 255, 0.3);
+       color: #8c3ad8;
+   }
+   
+   /* ==========================================================================
+      Enhanced Order Sync Tab Styles
+      ========================================================================== */
+   
+   .mic-sync-main-action {
+       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+       border: 2px solid #e2e8f0;
+       border-radius: 12px;
+       padding: 24px;
+       margin-bottom: 24px;
+       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+   }
+   
+   .mic-sync-main-action-content {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       gap: 24px;
+   }
+   
+   .mic-sync-main-status {
+       display: flex;
+       align-items: center;
+       gap: 16px;
+       flex: 1;
+   }
+   
+   .mic-sync-main-status i {
+       font-size: 32px;
+       width: 48px;
+       height: 48px;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       border-radius: 12px;
+   }
+   
+   .mic-sync-main-status.mic-synced i {
+       background: rgba(0, 163, 42, 0.1);
+       color: #00a32a;
+   }
+   
+   .mic-sync-main-status.mic-not-synced i {
+       background: rgba(219, 166, 23, 0.1);
+       color: #dba617;
+   }
+   
+   .mic-sync-main-text h4 {
+       margin: 0 0 8px 0;
+       color: #1f2937;
+       font-size: 18px;
+       font-weight: 600;
+   }
+   
+   .mic-sync-main-text p {
+       margin: 0;
+       color: #6b7280;
+       font-size: 14px;
+       line-height: 1.4;
+   }
+   
+   .mic-button-large {
+       padding: 16px 24px;
+       font-size: 16px;
+       font-weight: 600;
+       border-radius: 8px;
+       min-width: 180px;
+       justify-content: center;
+       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+       transition: all 0.3s ease;
+   }
+   
+   .mic-button-large:hover {
+       transform: translateY(-2px);
+       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+   }
+   
+   /* ==========================================================================
+      Sync History Styles
+      ========================================================================== */
+   
+   .mic-sync-history-section {
+       margin-bottom: 24px;
+       padding: 16px;
+       background: #f8f9fa;
+       border-radius: 6px;
+       border: 1px solid #e1e5e9;
+   }
+   
+   .mic-sync-history-list {
+       background: white;
+       border-radius: 6px;
+       border: 1px solid #e1e5e9;
+       overflow: hidden;
+   }
+   
+   .mic-sync-history-item {
+       padding: 16px;
+       border-bottom: 1px solid #f1f5f9;
+   }
+   
+   .mic-sync-history-item:last-child {
+       border-bottom: none;
+   }
+   
+   .mic-sync-history-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-bottom: 8px;
+   }
+   
+   .mic-sync-history-time {
+       font-size: 12px;
+       color: #6b7280;
+       font-weight: 500;
+   }
+   
+   .mic-sync-history-message {
+       color: #374151;
+       font-size: 14px;
+       line-height: 1.4;
+       margin-bottom: 4px;
+   }
+   
+   .mic-sync-history-duration {
+       font-size: 11px;
+       color: #9ca3af;
+       font-weight: 500;
+   }
+   
+   /* ==========================================================================
+      Responsive Design for Sync Elements
+      ========================================================================== */
+   
+   @media (max-width: 768px) {
+       .mic-sync-main-action-content {
+           flex-direction: column;
+           text-align: center;
+           gap: 16px;
+       }
+       
+       .mic-sync-main-status {
+           flex-direction: column;
+           text-align: center;
+       }
+       
+       .mic-button-large {
+           width: 100%;
+           min-width: auto;
+       }
+       
+       .mic-sync-column-info {
+           align-items: center;
+           text-align: center;
+       }
+       
+       .mic-sync-btn {
+           min-width: 28px;
+           height: 28px;
+           font-size: 14px;
+       }
+   }
+   
+   /* ==========================================================================
+      WooCommerce Orders List Integration
+      ========================================================================== */
+   
+   /* Ensure sync status column has proper width */
+   .wp-list-table .column-mic_sync_status {
+       width: 120px;
+   }
+   
+   /* Style the sync status column in orders list */
+   .wp-list-table .mic-sync-column-info {
+       min-height: 60px;
+       justify-content: center;
+   }
+   
+   /* Ensure buttons are properly sized in table cells */
+   .wp-list-table .mic-sync-btn {
+       margin: 2px;
+       flex-shrink: 0;
+   }
+   
+   /* Make sync badges more compact in table */
+   .wp-list-table .mic-sync-badge {
+       font-size: 10px;
+       padding: 3px 6px;
+   }
+   
+   /* Ensure proper spacing in table cells */
+   .wp-list-table td {
+       vertical-align: middle;
+   }
+   
+   /* Style for when plugin is not configured */
+   .wp-list-table .mic-sync-not-configured {
+       color: #6b7280;
+       font-style: italic;
+       font-size: 11px;
+   }
+   
+   /* ==========================================================================
+      Loading States and Animations
+      ========================================================================== */
+   
+   .mic-sync-btn:disabled {
+       opacity: 0.6;
+       cursor: not-allowed;
+       transform: scale(0.95);
+   }
+   
+   .mic-sync-btn .ri-spin {
+       animation: ri-spin 1s linear infinite;
+   }
+   
+   @keyframes ri-spin {
+       from { transform: rotate(0deg); }
+       to { transform: rotate(360deg); }
+   }
+   
+   /* Pulse animation for loading states */
+   .mic-sync-btn.loading {
+       animation: mic-pulse 1.5s ease-in-out infinite;
+   }
+   
+   @keyframes mic-pulse {
+       0%, 100% { opacity: 1; }
+       50% { opacity: 0.6; }
+   }
+   
+   /* Hover effects for sync buttons */
+   .mic-sync-btn:not(:disabled):hover {
+       transform: translateY(-1px);
+       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+   }
+   
+   .mic-sync-btn:not(:disabled):active {
+       transform: translateY(0);
+       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
    }
 }

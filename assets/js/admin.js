@@ -69,6 +69,17 @@
                 self.retrySync.call(self, e); 
             });
             
+            // Orders list sync buttons
+            $(document).on('click', '.mic-sync-now-btn', function(e) {
+                e.preventDefault();
+                self.syncOrder.call(self, e);
+            });
+            
+            $(document).on('click', '.mic-resync-btn[data-order-id]:not([data-log-id])', function(e) {
+                e.preventDefault();
+                self.resyncOrder.call(self, e);
+            });
+            
             $(document).on('click', '.mic-resync-btn[data-log-id]', function(e) { 
                 e.preventDefault(); 
                 self.resyncFromLog.call(self, e); 
@@ -269,8 +280,9 @@
             const button = $(e.target);
             const orderId = button.data('order-id');
             const originalText = button.html();
+            const isInOrdersList = button.closest('.mic-sync-column-info').length > 0;
             
-            console.log('Sync order - Order ID:', orderId);
+            console.log('Sync order - Order ID:', orderId, 'In orders list:', isInOrdersList);
             
             button.prop('disabled', true);
             button.html('<i class="ri-loader-4-line ri-spin"></i> Syncing...');
@@ -284,9 +296,15 @@
                 console.log('Sync order response:', response);
                 if (response.success) {
                     MICUtils.showNotification(response.data.message, 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
+                    if (isInOrdersList) {
+                        // Update the sync status in the orders list
+                        self.updateOrderSyncStatus(orderId, true, response.data.sync_time);
+                    } else {
+                        // Reload page for order edit page
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    }
                 } else {
                     MICUtils.showNotification('Sync failed: ' + response.data, 'error');
                 }
@@ -310,8 +328,9 @@
             const button = $(e.target);
             const orderId = button.data('order-id');
             const originalText = button.html();
+            const isInOrdersList = button.closest('.mic-sync-column-info').length > 0;
             
-            console.log('Resync order - Order ID:', orderId);
+            console.log('Resync order - Order ID:', orderId, 'In orders list:', isInOrdersList);
             
             button.prop('disabled', true);
             button.html('<i class="ri-loader-4-line ri-spin"></i> Resyncing...');
@@ -325,9 +344,15 @@
                 console.log('Resync order response:', response);
                 if (response.success) {
                     MICUtils.showNotification(response.data.message, 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
+                    if (isInOrdersList) {
+                        // Update the sync status in the orders list
+                        self.updateOrderSyncStatus(orderId, true, response.data.sync_time);
+                    } else {
+                        // Reload page for order edit page
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    }
                 } else {
                     MICUtils.showNotification('Resync failed: ' + response.data, 'error');
                 }
@@ -335,6 +360,10 @@
             .fail(function(xhr, status, error) {
                 console.error('Resync order AJAX failed:', {xhr, status, error});
                 MICUtils.showNotification('Resync failed: ' + error, 'error');
+                if (isInOrdersList) {
+                    // Update the sync status in the orders list on failure
+                    self.updateOrderSyncStatus(orderId, false, null);
+                }
             })
             .always(function() {
                 button.prop('disabled', false);
@@ -490,6 +519,51 @@
                     }
                 }
             });
+        },
+
+        /**
+         * Update the sync status of an order in the orders list
+         */
+        updateOrderSyncStatus: function(orderId, isSynced, syncTime) {
+            const row = $(`tr[data-order-id="${orderId}"]`);
+            if (row.length) {
+                const syncStatusCell = row.find('.column-mic_sync_status');
+                if (syncStatusCell.length) {
+                    if (isSynced) {
+                        syncStatusCell.html(`
+                            <div class="mic-sync-column-info">
+                                <div class="mic-sync-status">
+                                    <span class="mic-sync-badge mic-synced-badge">
+                                        <i class="ri-check-line"></i> ${micStrings.synced}
+                                    </span>
+                                </div>
+                                <div class="mic-sync-time">${MICUtils.formatDate(syncTime)}</div>
+                                <div class="mic-sync-btn">
+                                    <button type="button" class="button mic-resync-btn" data-order-id="${orderId}">
+                                        <i class="ri-refresh-line"></i> Resync Order
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        syncStatusCell.html(`
+                            <div class="mic-sync-column-info">
+                                <div class="mic-sync-status">
+                                    <span class="mic-sync-badge mic-not-synced-badge">
+                                        <i class="ri-close-line"></i> ${micStrings.notSynced}
+                                    </span>
+                                </div>
+                                <div class="mic-sync-time">N/A</div>
+                                <div class="mic-sync-btn">
+                                    <button type="button" class="button mic-sync-now-btn" data-order-id="${orderId}">
+                                        <i class="ri-sync-line"></i> Sync Now
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    }
+                }
+            }
         }
     };
 
