@@ -637,93 +637,136 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
     }
     
     /**
-     * AJAX handler for manual order sync
-     */
-    public function ajax_sync_order() {
-        check_ajax_referer('mic_sync_order', 'nonce');
-        
-        if (!current_user_can('manage_woocommerce')) {
-            wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
-            return;
-        }
-        
-        $order_id = intval($_POST['order_id']);
-        $order = wc_get_order($order_id);
-        
-        if (!$order) {
-            wp_send_json_error(__('Order not found', 'mic-woo-sync'));
-            return;
-        }
-        
-        // Check if plugin is configured
-        $options = get_option($this->option_name);
-        if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            wp_send_json_error(__('Plugin not configured. Please configure Laravel URL and webhook secret.', 'mic-woo-sync'));
-            return;
-        }
-        
-        // Process the sync (force sync for manual sync regardless of status)
-        $this->process_order_sync_force($order_id, $order);
-        
-        // Get updated sync status
-        $synced = $order->get_meta('_laravel_synced');
-        $sync_time = $order->get_meta('_laravel_sync_time');
-        
-        if ($synced) {
-            wp_send_json_success(array(
-                'message' => __('Order sync successful!', 'mic-woo-sync'),
-                'status' => 'synced',
-                'sync_time' => $sync_time
-            ));
-        } else {
-            wp_send_json_error(__('Order sync failed. Check the logs for details.', 'mic-woo-sync'));
-        }
+ * FIXED: AJAX handler for manual order sync
+ */
+public function ajax_sync_order() {
+    check_ajax_referer('mic_sync_order', 'nonce');
+    
+    if (!current_user_can('manage_woocommerce')) {
+        wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
+        return;
     }
     
-    /**
-     * AJAX handler for retrying failed syncs
-     */
-    public function ajax_retry_sync() {
-        check_ajax_referer('mic_retry_sync', 'nonce');
-        
-        if (!current_user_can('manage_woocommerce')) {
-            wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
-            return;
-        }
-        
-        $order_id = intval($_POST['order_id']);
-        $log_id = intval($_POST['log_id']);
-        $order = wc_get_order($order_id);
-        
-        if (!$order) {
-            wp_send_json_error(__('Order not found', 'mic-woo-sync'));
-            return;
-        }
-        
-        // Check if plugin is configured
-        $options = get_option($this->option_name);
-        if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            wp_send_json_error(__('Plugin not configured. Please configure Laravel URL and webhook secret.', 'mic-woo-sync'));
-            return;
-        }
-        
-        // Process the sync (force sync regardless of order status for retry)
-        $this->process_order_sync_force($order_id, $order);
-        
-        // Get updated sync status
-        $synced = $order->get_meta('_laravel_synced');
-        $sync_time = $order->get_meta('_laravel_sync_time');
-        
-        if ($synced) {
-            wp_send_json_success(array(
-                'message' => __('Order sync retry successful!', 'mic-woo-sync'),
-                'status' => 'synced',
-                'sync_time' => $sync_time
-            ));
-        } else {
-            wp_send_json_error(__('Order sync retry failed. Check the logs for details.', 'mic-woo-sync'));
-        }
+    $order_id = intval($_POST['order_id']);
+    $order = wc_get_order($order_id);
+    
+    if (!$order) {
+        wp_send_json_error(__('Order not found', 'mic-woo-sync'));
+        return;
     }
+    
+    // Check if plugin is configured
+    $options = get_option($this->option_name);
+    if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
+        wp_send_json_error(__('Plugin not configured. Please configure Laravel URL and webhook secret.', 'mic-woo-sync'));
+        return;
+    }
+    
+    // Process the sync (force sync for manual sync regardless of status)
+    $this->process_order_sync_force($order_id, $order);
+    
+    // FIXED: Reload order object and check both meta data and logs
+    $order = wc_get_order($order_id); // Reload order
+    $synced = $order->get_meta('_laravel_synced');
+    $sync_time = $order->get_meta('_laravel_sync_time');
+    
+    // Also check the latest log entry to be sure
+    global $wpdb;
+    $latest_log = $wpdb->get_row($wpdb->prepare(
+        "SELECT sync_status, response_message FROM {$this->log_table_name} 
+         WHERE order_id = %d ORDER BY sync_time DESC LIMIT 1",
+        $order_id
+    ));
+    
+    // Consider it successful if either meta says synced OR latest log is success
+    if ($synced || ($latest_log && $latest_log->sync_status === 'success')) {
+        wp_send_json_success(array(
+            'message' => __('Order sync successful!', 'mic-woo-sync'),
+            'status' => 'synced',
+            'sync_time' => $sync_time,
+            'log_status' => $latest_log ? $latest_log->sync_status : 'no_log'
+        ));
+    } else {
+        // Provide more detailed error information
+        $error_message = __('Order sync failed. Check the logs for details.', 'mic-woo-sync');
+        if ($latest_log && $latest_log->response_message) {
+            $error_message = $latest_log->response_message;
+        }
+        
+        wp_send_json_error(array(
+            'message' => $error_message,
+            'log_status' => $latest_log ? $latest_log->sync_status : 'no_log',
+            'synced_meta' => $synced ? 'yes' : 'no'
+        ));
+    }
+}
+
+    
+    /**
+ * FIXED: AJAX handler for retrying failed syncs
+ */
+public function ajax_retry_sync() {
+    check_ajax_referer('mic_retry_sync', 'nonce');
+    
+    if (!current_user_can('manage_woocommerce')) {
+        wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
+        return;
+    }
+    
+    $order_id = intval($_POST['order_id']);
+    $log_id = intval($_POST['log_id']);
+    $order = wc_get_order($order_id);
+    
+    if (!$order) {
+        wp_send_json_error(__('Order not found', 'mic-woo-sync'));
+        return;
+    }
+    
+    // Check if plugin is configured
+    $options = get_option($this->option_name);
+    if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
+        wp_send_json_error(__('Plugin not configured. Please configure Laravel URL and webhook secret.', 'mic-woo-sync'));
+        return;
+    }
+    
+    // Process the sync (force sync regardless of order status for retry)
+    $this->process_order_sync_force($order_id, $order);
+    
+    // FIXED: Reload order object and check both meta data and logs
+    $order = wc_get_order($order_id); // Reload order
+    $synced = $order->get_meta('_laravel_synced');
+    $sync_time = $order->get_meta('_laravel_sync_time');
+    
+    // Also check the latest log entry to be sure
+    global $wpdb;
+    $latest_log = $wpdb->get_row($wpdb->prepare(
+        "SELECT sync_status, response_message FROM {$this->log_table_name} 
+         WHERE order_id = %d ORDER BY sync_time DESC LIMIT 1",
+        $order_id
+    ));
+    
+    // Consider it successful if either meta says synced OR latest log is success
+    if ($synced || ($latest_log && $latest_log->sync_status === 'success')) {
+        wp_send_json_success(array(
+            'message' => __('Order sync retry successful!', 'mic-woo-sync'),
+            'status' => 'synced',
+            'sync_time' => $sync_time,
+            'log_status' => $latest_log ? $latest_log->sync_status : 'no_log'
+        ));
+    } else {
+        // Provide more detailed error information
+        $error_message = __('Order sync retry failed. Check the logs for details.', 'mic-woo-sync');
+        if ($latest_log && $latest_log->response_message) {
+            $error_message = $latest_log->response_message;
+        }
+        
+        wp_send_json_error(array(
+            'message' => $error_message,
+            'log_status' => $latest_log ? $latest_log->sync_status : 'no_log',
+            'synced_meta' => $synced ? 'yes' : 'no'
+        ));
+    }
+}
     
     /**
      * AJAX handler for basic connectivity test
@@ -786,86 +829,93 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $this->process_order_sync($order_id, $order);
     }
     
-    // Force sync method for retries (bypasses status check)
-    private function process_order_sync_force($order_id, $order) {
-        $options = get_option($this->option_name);
-        
-        if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            $this->log_sync($order_id, 'failed', __('Plugin not configured', 'mic-woo-sync'));
-            return;
-        }
-        
-        $order = wc_get_order($order_id);
-        if (!$order) {
-            $this->log_sync($order_id, 'failed', __('Order not found', 'mic-woo-sync'));
-            return;
-        }
-        
-        // SKIP STATUS CHECK FOR FORCED RETRY
-        
-        $start_time = microtime(true);
-        
-        // Prepare order data - SAME FORMAT AS FIRST PLUGIN
-        $order_data = array(
-            'order_id' => $order_id,
-            'order_number' => $order->get_order_number(),
-            'email' => $order->get_billing_email(),
-            'name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-            'products' => array()
-        );
-        
-        // Get products with SKUs - SAME LOGIC AS FIRST PLUGIN
-        foreach ($order->get_items() as $item) {
-            $product = $item->get_product();
-            if ($product && $product->get_sku()) {
-                $order_data['products'][] = array(
-                    'sku' => $product->get_sku(),
-                    'name' => $product->get_name()
-                );
-            }
-        }
-        
-        if (empty($order_data['products'])) {
-            $this->log_sync($order_id, 'failed', __('No products with SKUs found', 'mic-woo-sync'));
-            return;
-        }
-        
-        // Send to Laravel - SAME METHOD AS FIRST PLUGIN
-        $laravel_url = rtrim($options['laravel_url'], '/') . '/api/v1/woocommerce-sync';
-        $payload = wp_json_encode($order_data);
-        $signature = base64_encode(hash_hmac('sha256', $payload, $options['webhook_secret'], true));
-        
-        $response = wp_remote_post($laravel_url, array(
-            'headers' => array(
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'X-WC-Webhook-Signature' => $signature
-            ),
-            'body' => $payload,
-            'timeout' => 30
-        ));
-        
-        $execution_time = microtime(true) - $start_time;
-        
-        if (is_wp_error($response)) {
-            $this->log_sync($order_id, 'failed', $response->get_error_message(), $execution_time);
-            return;
-        }
-        
-        $code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        
-        if ($code === 200 || $code === 201) {
-            $this->log_sync($order_id, 'success', __('Sync completed successfully', 'mic-woo-sync'), $execution_time);
-            
-            // Store sync metadata in order
-            $order->update_meta_data('_laravel_synced', true);
-            $order->update_meta_data('_laravel_sync_time', current_time('mysql'));
-            $order->save();
-        } else {
-            $this->log_sync($order_id, 'failed', "HTTP $code: $body", $execution_time);
+    /**
+ * FIXED: Force sync method for retries (bypasses status check) - with better error handling
+ */
+private function process_order_sync_force($order_id, $order) {
+    $options = get_option($this->option_name);
+    
+    if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
+        $this->log_sync($order_id, 'failed', __('Plugin not configured', 'mic-woo-sync'));
+        return false;
+    }
+    
+    $order = wc_get_order($order_id);
+    if (!$order) {
+        $this->log_sync($order_id, 'failed', __('Order not found', 'mic-woo-sync'));
+        return false;
+    }
+    
+    $start_time = microtime(true);
+    
+    // Prepare order data - SAME FORMAT AS FIRST PLUGIN
+    $order_data = array(
+        'order_id' => $order_id,
+        'order_number' => $order->get_order_number(),
+        'email' => $order->get_billing_email(),
+        'name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+        'products' => array()
+    );
+    
+    // Get products with SKUs - SAME LOGIC AS FIRST PLUGIN
+    foreach ($order->get_items() as $item) {
+        $product = $item->get_product();
+        if ($product && $product->get_sku()) {
+            $order_data['products'][] = array(
+                'sku' => $product->get_sku(),
+                'name' => $product->get_name()
+            );
         }
     }
+    
+    if (empty($order_data['products'])) {
+        $this->log_sync($order_id, 'failed', __('No products with SKUs found', 'mic-woo-sync'));
+        return false;
+    }
+    
+    // Send to Laravel - SAME METHOD AS FIRST PLUGIN
+    $laravel_url = rtrim($options['laravel_url'], '/') . '/api/v1/woocommerce-sync';
+    $payload = wp_json_encode($order_data);
+    $signature = base64_encode(hash_hmac('sha256', $payload, $options['webhook_secret'], true));
+    
+    $response = wp_remote_post($laravel_url, array(
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'X-WC-Webhook-Signature' => $signature
+        ),
+        'body' => $payload,
+        'timeout' => 30
+    ));
+    
+    $execution_time = microtime(true) - $start_time;
+    
+    if (is_wp_error($response)) {
+        $this->log_sync($order_id, 'failed', $response->get_error_message(), $execution_time);
+        return false;
+    }
+    
+    $code = wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    
+    if ($code === 200 || $code === 201) {
+        $this->log_sync($order_id, 'success', __('Sync completed successfully', 'mic-woo-sync'), $execution_time, $code, $body);
+        
+        // FIXED: Store sync metadata in order and ensure it's saved
+        $order->update_meta_data('_laravel_synced', true);
+        $order->update_meta_data('_laravel_sync_time', current_time('mysql'));
+        $order->save();
+        
+        // Force a cache clear for this order
+        wp_cache_delete($order_id, 'orders');
+        clean_post_cache($order_id);
+        
+        return true;
+    } else {
+        $this->log_sync($order_id, 'failed', "HTTP $code: $body", $execution_time, $code, $body);
+        return false;
+    }
+}
 
     // Main sync processing method - WORKING LOGIC FROM FIRST PLUGIN
     private function process_order_sync($order_id, $order) {
@@ -954,29 +1004,37 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         }
     }
     
-    private function log_sync($order_id, $status, $message, $execution_time = 0, $response_code = null, $response_data = '') {
-        global $wpdb;
-        
-        $order = wc_get_order($order_id);
-        if (!$order) return;
-        
-        $wpdb->insert(
-            $this->log_table_name,
-            array(
-                'order_id' => $order_id,
-                'order_number' => $order->get_order_number(),
-                'customer_email' => $order->get_billing_email(),
-                'customer_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-                'products_data' => wp_json_encode($this->get_order_products($order)),
-                'sync_status' => $status,
-                'response_code' => $response_code,
-                'response_message' => $message,
-                'response_data' => $response_data,
-                'execution_time' => $execution_time
-            ),
-            array('%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%f')
-        );
+    /**
+ * FIXED: Enhanced logging method with response code parameter
+ */
+private function log_sync($order_id, $status, $message, $execution_time = 0, $response_code = null, $response_data = '') {
+    global $wpdb;
+    
+    $order = wc_get_order($order_id);
+    if (!$order) return;
+    
+    $result = $wpdb->insert(
+        $this->log_table_name,
+        array(
+            'order_id' => $order_id,
+            'order_number' => $order->get_order_number(),
+            'customer_email' => $order->get_billing_email(),
+            'customer_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+            'products_data' => wp_json_encode($this->get_order_products($order)),
+            'sync_status' => $status,
+            'response_code' => $response_code,
+            'response_message' => $message,
+            'response_data' => $response_data,
+            'execution_time' => $execution_time
+        ),
+        array('%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%f')
+    );
+    
+    // Debug logging if WP_DEBUG is enabled
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("MIC Sync Log - Order: $order_id, Status: $status, Message: $message, Insert Result: " . ($result ? 'success' : 'failed'));
     }
+}
     
     private function get_order_products($order) {
         $products = array();

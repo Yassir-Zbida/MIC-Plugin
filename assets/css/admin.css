@@ -1762,3 +1762,155 @@
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
     }
 }
+
+/* Add this CSS to your admin.css file for better notifications */
+
+/* ==========================================================================
+   Enhanced Notifications
+   ========================================================================== */
+
+   .mic-notification {
+    position: fixed !important;
+    top: 32px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    max-width: 400px !important;
+    min-width: 300px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 6px !important;
+    border-left-width: 4px !important;
+    margin: 0 !important;
+    animation: mic-slide-in 0.3s ease-out;
+}
+
+.mic-notification p {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    font-weight: 500 !important;
+}
+
+.mic-notification i {
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+}
+
+.mic-notification.notice-success {
+    background: #f0fdf4 !important;
+    border-left-color: #22c55e !important;
+    color: #14532d !important;
+}
+
+.mic-notification.notice-error {
+    background: #fef2f2 !important;
+    border-left-color: #ef4444 !important;
+    color: #991b1b !important;
+}
+
+.mic-notification.notice-info {
+    background: #f0f9ff !important;
+    border-left-color: #0ea5e9 !important;
+    color: #0c4a6e !important;
+}
+
+.mic-notification.notice-warning {
+    background: #fffbeb !important;
+    border-left-color: #f59e0b !important;
+    color: #92400e !important;
+}
+
+.mic-notification .notice-dismiss {
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    right: 8px !important;
+}
+
+.mic-notification .notice-dismiss:hover::before {
+    color: inherit !important;
+}
+
+/* Slide-in animation */
+@keyframes mic-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Stack multiple notifications */
+.mic-notification:nth-child(n+2) {
+    top: calc(32px + (70px * (var(--notification-index, 1)))) !important;
+}
+
+/* Loading states for buttons */
+.mic-button:disabled {
+    opacity: 0.7 !important;
+    cursor: not-allowed !important;
+    position: relative !important;
+}
+
+.mic-button:disabled .ri-spin {
+    animation: ri-spin 1s linear infinite !important;
+}
+
+/* Better error display in sync status */
+.mic-sync-error-details {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #991b1b;
+    line-height: 1.4;
+}
+
+.mic-sync-success-details {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #14532d;
+    line-height: 1.4;
+}
+
+/* Improved hover states for action buttons */
+.mic-sync-btn:hover:not(:disabled) {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.2s ease !important;
+}
+
+.mic-sync-btn:active:not(:disabled) {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Better visual feedback for sync status changes */
+.mic-sync-column-info {
+    transition: all 0.3s ease !important;
+}
+
+.mic-sync-column-info:hover {
+    background: rgba(164, 68, 255, 0.05) !important;
+    border-radius: 4px !important;
+    padding: 4px !important;
+    margin: -4px !important;
+}
+
+/* Mobile responsive notifications */
+@media (max-width: 768px) {
+    .mic-notification {
+        right: 10px !important;
+        left: 10px !important;
+        max-width: none !important;
+        min-width: auto !important;
+    }
+}
