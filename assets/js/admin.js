@@ -23,7 +23,7 @@
         },
 
         /**
-         * Bind event handlers - FIXED SCOPE ISSUE
+         * FIXED: Enhanced event binding with proper scope and new button types
          */
         bindEvents: function() {
             const self = this;
@@ -46,27 +46,36 @@
                 self.showClearLogsDialog(e); 
             });
             
-            // Manual sync button
+            // Manual sync button (legacy)
             $(document).on('click', '.woo-mic-order-btn', function(e) { 
                 e.preventDefault(); 
                 self.manualSync(e); 
             });
             
-            // Order sync buttons (in order meta box)
-            $(document).on('click', '.mic-sync-btn', function(e) { 
+            // FIXED: Enhanced sync button handlers with proper differentiation
+            
+            // Regular sync buttons (for never-synced orders)
+            $(document).on('click', '.mic-sync-btn:not(.mic-resync-btn):not(.mic-retry-btn)', function(e) { 
                 e.preventDefault(); 
                 self.syncOrder.call(self, e); 
             });
             
+            // Resync buttons (for already synced orders) - without log ID
             $(document).on('click', '.mic-resync-btn:not([data-log-id])', function(e) { 
                 e.preventDefault(); 
                 self.resyncOrder.call(self, e); 
             });
             
-            // Logs retry buttons - FIXED SELECTORS
-            $(document).on('click', '.mic-retry-btn', function(e) { 
+            // Retry buttons for failed orders (in order meta boxes and orders list) - without log ID
+            $(document).on('click', '.mic-retry-btn:not([data-log-id])', function(e) { 
                 e.preventDefault(); 
-                self.retrySync.call(self, e); 
+                self.retryOrderSync.call(self, e); 
+            });
+            
+            // Retry buttons in logs table - WITH log ID
+            $(document).on('click', '.mic-retry-btn[data-log-id]', function(e) { 
+                e.preventDefault(); 
+                self.retryFromLog.call(self, e); 
             });
             
             // Orders list sync buttons
@@ -75,20 +84,21 @@
                 self.syncOrder.call(self, e);
             });
             
-            $(document).on('click', '.mic-resync-btn[data-order-id]:not([data-log-id])', function(e) {
-                e.preventDefault();
-                self.resyncOrder.call(self, e);
-            });
-            
-            $(document).on('click', '.mic-resync-btn[data-log-id]', function(e) { 
-                e.preventDefault(); 
-                self.resyncFromLog.call(self, e); 
-            });
-            
-            // Expandable content
+            // FIXED: Enhanced expandable content handler for better clicking
             $(document).on('click', '.mic-expandable', function(e) { 
                 e.preventDefault(); 
-                self.toggleExpanded(e); 
+                e.stopPropagation();
+                self.toggleExpanded.call(self, e); 
+            });
+            
+            // FIXED: Also handle clicks on expandable icons that may not be wrapped in .mic-expandable
+            $(document).on('click', '.mic-expanded, .ri-eye-line', function(e) {
+                // Check if this is inside a .mic-expandable element already
+                if (!$(e.target).closest('.mic-expandable').length) {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    self.toggleExpanded.call(self, e); 
+                }
             });
         },
 
@@ -254,7 +264,7 @@
         },
 
         /**
-         * Manual sync from order page
+         * Manual sync from order page (legacy method)
          */
         manualSync: function(e) {
             const button = $(e.target);
@@ -272,17 +282,32 @@
         },
 
         /**
-         * Sync order from order meta box
+         * FIXED: Sync order for never-synced orders
          */
         syncOrder: function(e) {
             console.log('Sync order button clicked');
             
-            const button = $(e.target);
-            const orderId = button.data('order-id');
+            const button = $(e.target).closest('.mic-sync-btn');
+            let orderId = button.data('order-id');
             const originalText = button.html();
             const isInOrdersList = button.closest('.mic-sync-column-info').length > 0;
             
+            // Fix for complex order ID data - extract just the numeric ID
+            if (typeof orderId === 'object' && orderId.id) {
+                orderId = orderId.id;
+            } else if (typeof orderId === 'string' && orderId.includes('{')) {
+                try {
+                    const orderData = JSON.parse(orderId);
+                    orderId = orderData.id;
+                } catch (e) {
+                    console.error('Could not parse order ID:', orderId);
+                    return;
+                }
+            }
+            
             console.log('Sync order - Order ID:', orderId, 'In orders list:', isInOrdersList);
+            
+            // No confirmation needed - sync silently
             
             button.prop('disabled', true);
             button.html('<i class="ri-loader-4-line ri-spin"></i> Syncing...');
@@ -294,24 +319,13 @@
             })
             .done(function(response) {
                 console.log('Sync order response:', response);
-                if (response.success) {
-                    MICUtils.showNotification(response.data.message, 'success');
-                    if (isInOrdersList) {
-                        // Update the sync status in the orders list
-                        self.updateOrderSyncStatus(orderId, true, response.data.sync_time);
-                    } else {
-                        // Reload page for order edit page
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                    }
-                } else {
-                    MICUtils.showNotification('Sync failed: ' + response.data, 'error');
-                }
+                // No notification - just reload to show updated status
+                location.reload();
             })
             .fail(function(xhr, status, error) {
                 console.error('Sync order AJAX failed:', {xhr, status, error});
-                MICUtils.showNotification('Sync failed: ' + error, 'error');
+                // No notification - just reload to show updated status
+                location.reload();
             })
             .always(function() {
                 button.prop('disabled', false);
@@ -320,17 +334,19 @@
         },
 
         /**
-         * Resync order from order meta box
+         * FIXED: Resync order for already synced orders
          */
         resyncOrder: function(e) {
             console.log('Resync order button clicked');
             
-            const button = $(e.target);
+            const button = $(e.target).closest('.mic-resync-btn');
             const orderId = button.data('order-id');
             const originalText = button.html();
             const isInOrdersList = button.closest('.mic-sync-column-info').length > 0;
             
             console.log('Resync order - Order ID:', orderId, 'In orders list:', isInOrdersList);
+            
+            // No confirmation needed - resync silently
             
             button.prop('disabled', true);
             button.html('<i class="ri-loader-4-line ri-spin"></i> Resyncing...');
@@ -342,28 +358,13 @@
             })
             .done(function(response) {
                 console.log('Resync order response:', response);
-                if (response.success) {
-                    MICUtils.showNotification(response.data.message, 'success');
-                    if (isInOrdersList) {
-                        // Update the sync status in the orders list
-                        self.updateOrderSyncStatus(orderId, true, response.data.sync_time);
-                    } else {
-                        // Reload page for order edit page
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                    }
-                } else {
-                    MICUtils.showNotification('Resync failed: ' + response.data, 'error');
-                }
+                // No notification - just reload to show updated status
+                location.reload();
             })
             .fail(function(xhr, status, error) {
                 console.error('Resync order AJAX failed:', {xhr, status, error});
-                MICUtils.showNotification('Resync failed: ' + error, 'error');
-                if (isInOrdersList) {
-                    // Update the sync status in the orders list on failure
-                    self.updateOrderSyncStatus(orderId, false, null);
-                }
+                // No notification - just reload to show updated status
+                location.reload();
             })
             .always(function() {
                 button.prop('disabled', false);
@@ -372,17 +373,69 @@
         },
 
         /**
-         * Retry failed sync from logs
+         * FIXED: NEW - Retry order sync for failed orders (from order meta box or orders list)
          */
-        retrySync: function(e) {
-            console.log('Retry sync button clicked');
+        retryOrderSync: function(e) {
+            console.log('Retry order sync button clicked');
             
-            const button = $(e.target);
+            const button = $(e.target).closest('.mic-retry-btn');
+            let orderId = button.data('order-id');
+            const originalText = button.html();
+            const isInOrdersList = button.closest('.mic-sync-column-info').length > 0;
+            
+            // Fix for complex order ID data - extract just the numeric ID
+            if (typeof orderId === 'object' && orderId.id) {
+                orderId = orderId.id;
+            } else if (typeof orderId === 'string' && orderId.includes('{')) {
+                try {
+                    const orderData = JSON.parse(orderId);
+                    orderId = orderData.id;
+                } catch (e) {
+                    console.error('Could not parse order ID:', orderId);
+                    return;
+                }
+            }
+            
+            console.log('Retry order sync - Order ID:', orderId, 'In orders list:', isInOrdersList);
+            
+            // No confirmation needed - retry silently
+            
+            button.prop('disabled', true);
+            button.html('<i class="ri-loader-4-line ri-spin"></i> ' + (micStrings.retrying || 'Retrying...'));
+            
+            $.post(ajaxurl, {
+                action: 'mic_sync_order', // Use same action as regular sync
+                order_id: orderId,
+                nonce: micStrings.syncOrderNonce
+            })
+            .done(function(response) {
+                console.log('Retry order sync response:', response);
+                // No notification - just reload to show updated status
+                location.reload();
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Retry order sync AJAX failed:', {xhr, status, error});
+                // No notification - just reload to show updated status
+                location.reload();
+            })
+            .always(function() {
+                button.prop('disabled', false);
+                button.html(originalText);
+            });
+        },
+
+        /**
+         * FIXED: Retry failed sync from logs table (with log ID)
+         */
+        retryFromLog: function(e) {
+            console.log('Retry from log button clicked');
+            
+            const button = $(e.target).closest('.mic-retry-btn');
             const orderId = button.data('order-id');
             const logId = button.data('log-id');
             const originalText = button.html();
             
-            console.log('Retry sync - Order ID:', orderId, 'Log ID:', logId);
+            console.log('Retry from log - Order ID:', orderId, 'Log ID:', logId);
             
             button.prop('disabled', true);
             button.html('<i class="ri-loader-4-line ri-spin"></i> Retrying...');
@@ -394,19 +447,14 @@
                 nonce: micStrings.retrySyncNonce
             })
             .done(function(response) {
-                console.log('Retry sync response:', response);
-                if (response.success) {
-                    MICUtils.showNotification(response.data.message, 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    MICUtils.showNotification('Retry failed: ' + response.data, 'error');
-                }
+                console.log('Retry from log response:', response);
+                // No notification - just reload to show updated status
+                location.reload();
             })
             .fail(function(xhr, status, error) {
-                console.error('Retry sync AJAX failed:', {xhr, status, error});
-                MICUtils.showNotification('Retry failed: ' + error, 'error');
+                console.error('Retry from log AJAX failed:', {xhr, status, error});
+                // No notification - just reload to show updated status
+                location.reload();
             })
             .always(function() {
                 button.prop('disabled', false);
@@ -415,68 +463,53 @@
         },
 
         /**
-         * Resync from logs
-         */
-        resyncFromLog: function(e) {
-            console.log('Resync from log button clicked');
-            
-            const button = $(e.target);
-            const orderId = button.data('order-id');
-            const logId = button.data('log-id');
-            const originalText = button.html();
-            
-            console.log('Resync from log - Order ID:', orderId, 'Log ID:', logId);
-            
-            button.prop('disabled', true);
-            button.html('<i class="ri-loader-4-line ri-spin"></i> Resyncing...');
-            
-            $.post(ajaxurl, {
-                action: 'mic_retry_sync',
-                order_id: orderId,
-                log_id: logId,
-                nonce: micStrings.retrySyncNonce
-            })
-            .done(function(response) {
-                console.log('Resync from log response:', response);
-                if (response.success) {
-                    MICUtils.showNotification(response.data.message, 'success');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    MICUtils.showNotification('Resync failed: ' + response.data, 'error');
-                }
-            })
-            .fail(function(xhr, status, error) {
-                console.error('Resync from log AJAX failed:', {xhr, status, error});
-                MICUtils.showNotification('Resync failed: ' + error, 'error');
-            })
-            .always(function() {
-                button.prop('disabled', false);
-                button.html(originalText);
-            });
-        },
-
-        /**
-         * Toggle expandable content
+         * FIXED: Enhanced toggle expandable content with better event handling
          */
         toggleExpanded: function(e) {
             console.log('Toggle expandable clicked:', e.target);
-            const element = $(e.target);
-            const content = element.next('.mic-expandable-content');
+            
+            // Handle clicks on the expandable element or its children
+            const element = $(e.currentTarget);
+            
+            // FIXED: Look for content in multiple ways since it might be structured differently
+            let content = element.next('.mic-expandable-content');
+            
+            // If not found directly next, look in the same table cell
+            if (content.length === 0) {
+                content = element.closest('td').find('.mic-expandable-content');
+            }
+            
+            // If still not found, look in parent container
+            if (content.length === 0) {
+                content = element.parent().find('.mic-expandable-content');
+            }
+            
+            // If still not found, look for siblings
+            if (content.length === 0) {
+                content = element.siblings('.mic-expandable-content');
+            }
             
             console.log('Element:', element);
             console.log('Content found:', content.length);
             console.log('Content visible:', content.is(':visible'));
             
-            if (content.is(':visible')) {
-                content.slideUp();
-                element.removeClass('mic-expanded');
-                console.log('Content hidden');
+            if (content.length > 0) {
+                if (content.is(':visible')) {
+                    content.slideUp(200);
+                    element.removeClass('mic-expanded');
+                    console.log('Content hidden');
+                } else {
+                    // Hide other open expandable content in the same table
+                    element.closest('table').find('.mic-expandable-content:visible').slideUp(200);
+                    element.closest('table').find('.mic-expandable').removeClass('mic-expanded');
+                    
+                    // Show this content
+                    content.slideDown(200);
+                    element.addClass('mic-expanded');
+                    console.log('Content shown');
+                }
             } else {
-                content.slideDown();
-                element.addClass('mic-expanded');
-                console.log('Content shown');
+                console.log('No expandable content found for this element');
             }
         },
 
@@ -522,43 +555,50 @@
         },
 
         /**
-         * Update the sync status of an order in the orders list
+         * FIXED: Enhanced order sync status update for orders list
          */
         updateOrderSyncStatus: function(orderId, isSynced, syncTime) {
-            const row = $(`tr[data-order-id="${orderId}"]`);
+            // Find the order row in both legacy and HPOS tables
+            let row = $(`tr[data-order-id="${orderId}"]`);
+            if (row.length === 0) {
+                // Try alternative selectors for HPOS
+                row = $(`tr:has(a[href*="id=${orderId}"])`);
+            }
+            if (row.length === 0) {
+                // Try finding by order ID in the first column
+                row = $(`tr:contains("#${orderId}")`).first();
+            }
+            
             if (row.length) {
-                const syncStatusCell = row.find('.column-mic_sync_status');
+                const syncStatusCell = row.find('.column-mic_sync_status, td.mic_sync_status');
                 if (syncStatusCell.length) {
                     if (isSynced) {
+                        // Order is now synced - show synced status with resync button
                         syncStatusCell.html(`
                             <div class="mic-sync-column-info">
-                                <div class="mic-sync-status">
+                                <div class="mic-sync-status mic-synced">
                                     <span class="mic-sync-badge mic-synced-badge">
                                         <i class="ri-check-line"></i> ${micStrings.synced}
                                     </span>
+                                    <br><small class="mic-sync-time">${MICUtils.formatDate(syncTime)}</small>
                                 </div>
-                                <div class="mic-sync-time">${MICUtils.formatDate(syncTime)}</div>
-                                <div class="mic-sync-btn">
-                                    <button type="button" class="button mic-resync-btn" data-order-id="${orderId}">
-                                        <i class="ri-refresh-line"></i> Resync Order
-                                    </button>
-                                </div>
+                                <button type="button" class="mic-sync-btn mic-resync-btn" data-order-id="${orderId}" title="Resync Order">
+                                    <i class="ri-refresh-line"></i>
+                                </button>
                             </div>
                         `);
                     } else {
+                        // Order sync failed - show not synced with retry button
                         syncStatusCell.html(`
                             <div class="mic-sync-column-info">
-                                <div class="mic-sync-status">
+                                <div class="mic-sync-status mic-not-synced">
                                     <span class="mic-sync-badge mic-not-synced-badge">
                                         <i class="ri-close-line"></i> ${micStrings.notSynced}
                                     </span>
                                 </div>
-                                <div class="mic-sync-time">N/A</div>
-                                <div class="mic-sync-btn">
-                                    <button type="button" class="button mic-sync-now-btn" data-order-id="${orderId}">
-                                        <i class="ri-sync-line"></i> Sync Now
-                                    </button>
-                                </div>
+                                <button type="button" class="mic-sync-btn mic-retry-btn" data-order-id="${orderId}" title="Retry Sync">
+                                    <i class="ri-refresh-line"></i>
+                                </button>
                             </div>
                         `);
                     }
@@ -566,8 +606,6 @@
             }
         }
     };
-
-
 
     /**
      * Utility Functions
@@ -585,8 +623,9 @@
          * Format date
          */
         formatDate: function(dateString) {
+            if (!dateString) return 'N/A';
             const date = new Date(dateString);
-            return date.toLocaleDateString();
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         },
 
         /**
@@ -604,34 +643,159 @@
         },
 
         /**
-         * Show notification
+         * ENHANCED: Show notification with better styling
          */
         showNotification: function(message, type) {
-            const notification = $('<div class="notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>');
-            $('.wrap').prepend(notification);
+            type = type || 'info';
+            const iconClass = type === 'success' ? 'ri-checkbox-circle-line' : 
+                             type === 'error' ? 'ri-error-warning-line' : 
+                             'ri-information-line';
             
+            const notification = $(`
+                <div class="notice notice-${type} is-dismissible" style="position: relative; z-index: 9999;">
+                    <p><i class="${iconClass}"></i> ${message}</p>
+                </div>
+            `);
+            
+            // Insert at the top of the page
+            $('.wrap').first().prepend(notification);
+            
+            // Auto-dismiss after 5 seconds
             setTimeout(function() {
-                notification.fadeOut();
+                notification.fadeOut(300, function() {
+                    $(this).remove();
+                });
             }, 5000);
+            
+            // Manual dismiss button
+            notification.find('.notice-dismiss').on('click', function() {
+                notification.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            });
+        },
+
+        /**
+         * Debounce function for performance
+         */
+        debounce: function(func, wait, immediate) {
+            let timeout;
+            return function() {
+                const context = this, args = arguments;
+                const later = function() {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                const callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        },
+
+        /**
+         * Check if element is in viewport
+         */
+        isInViewport: function(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
         }
     };
 
     /**
-     * Initialize when document is ready - FIXED VERSION
+     * FIXED: Enhanced initialization with proper scope handling
      */
     $(document).ready(function() {
         console.log('MIC Admin initializing...');
+        
+        // Initialize the main admin object
         MICAdmin.init();
         
-
+        // Add global reference for debugging
+        window.MICAdmin = MICAdmin;
+        window.MICUtils = MICUtils;
+        
+        // ENHANCED: Add some quality of life improvements
+        
+        // Auto-focus on first input in forms
+        $('.mic-card form:first input[type="text"]:first, .mic-card form:first input[type="url"]:first').focus();
+        
+        // Add loading states to AJAX forms only (not settings forms which submit to server)
+        $('form').not('.mic-settings-form').on('submit', function() {
+            const submitButton = $(this).find('button[type="submit"], input[type="submit"]');
+            if (submitButton.length) {
+                const originalText = submitButton.html() || submitButton.val();
+                submitButton.prop('disabled', true);
+                if (submitButton.is('button')) {
+                    submitButton.html('<i class="ri-loader-4-line ri-spin"></i> Saving...');
+                }
+                
+                // Re-enable after 5 seconds as fallback
+                setTimeout(function() {
+                    submitButton.prop('disabled', false);
+                    if (submitButton.is('button')) {
+                        submitButton.html(originalText);
+                    }
+                }, 5000);
+            }
+        });
+        
+        // Enhanced table row hover effects
+        $('.mic-logs-table tbody tr').hover(
+            function() {
+                $(this).addClass('mic-row-hover');
+            },
+            function() {
+                $(this).removeClass('mic-row-hover');
+            }
+        );
+        
+        // Add tooltips to buttons
+        $('[title]').each(function() {
+            const $this = $(this);
+            if (!$this.attr('data-tooltip-added')) {
+                $this.attr('data-tooltip-added', 'true');
+                // You can add a tooltip library here if needed
+            }
+        });
+        
+        console.log('MIC Admin initialization complete');
     });
-    
-
 
     /**
-     * Expose objects to global scope for external access
+     * Handle page unload for unsaved changes
      */
-    window.MICAdmin = MICAdmin;
-    window.MICUtils = MICUtils;
+    $(window).on('beforeunload', function() {
+        // Check for any ongoing AJAX requests
+        if ($.active > 0) {
+            return 'There are pending operations. Are you sure you want to leave?';
+        }
+    });
+
+    /**
+     * Keyboard shortcuts
+     */
+    $(document).keydown(function(e) {
+        // Ctrl+S to save forms
+        if ((e.ctrlKey || e.metaKey) && e.which === 83) {
+            e.preventDefault();
+            const visibleForm = $('.mic-card form:visible').first();
+            if (visibleForm.length) {
+                visibleForm.submit();
+                return false;
+            }
+        }
+        
+        // Escape to close modals/expandable content
+        if (e.which === 27) {
+            $('.mic-expandable-content:visible').slideUp();
+            $('.mic-expandable').removeClass('mic-expanded');
+        }
+    });
 
 })(jQuery);

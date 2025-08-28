@@ -67,15 +67,16 @@ class MICWooToAppSyncPlugin {
         // Enqueue admin assets
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         
-        // Add order meta box
-        add_action('add_meta_boxes', array($this, 'add_order_meta_box'));
-        
-        // Add order sync meta box
-        add_action('add_meta_boxes', array($this, 'add_order_sync_meta_box'));
+        // FIXED: Add only ONE order meta box with HPOS support
+        add_action('add_meta_boxes', array($this, 'add_order_meta_boxes'));
         
         // Add sync status column to orders list
         add_filter('manage_edit-shop_order_columns', array($this, 'add_sync_status_column'));
         add_action('manage_shop_order_posts_custom_column', array($this, 'display_sync_status_column'), 10, 2);
+        
+        // HPOS compatibility for orders list
+        add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_sync_status_column'));
+        add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'display_sync_status_column'), 10, 2);
         
         // Manual sync
         add_action('wp_ajax_manual_sync', array($this, 'manual_sync'));
@@ -105,8 +106,13 @@ class MICWooToAppSyncPlugin {
             $load_assets = true;
         }
         
-        // WooCommerce order pages
+        // WooCommerce order pages (both legacy and HPOS)
         if ($hook === 'post.php' && isset($_GET['post']) && get_post_type($_GET['post']) === 'shop_order') {
+            $load_assets = true;
+        }
+        
+        // HPOS orders page
+        if ($hook === 'woocommerce_page_wc-orders') {
             $load_assets = true;
         }
         
@@ -139,10 +145,8 @@ class MICWooToAppSyncPlugin {
         );
         
         // IMPROVED: Always enqueue Chart.js for analytics functionality
-        // Check if we're on the analytics page or might need charts
         $is_analytics_page = (strpos($hook, 'mic-analytics') !== false);
         if ($is_analytics_page) {
-            // Try multiple CDN sources for Chart.js reliability
             wp_enqueue_script(
                 'chart-js',
                 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js',
@@ -183,9 +187,12 @@ class MICWooToAppSyncPlugin {
             'unknownError' => __('Unknown error', 'mic-woo-sync'),
             'testConnection' => __('Test Connection', 'mic-woo-sync'),
             'manualSyncConfirm' => __('Are you sure you want to manually sync this order to the Laravel app?', 'mic-woo-sync'),
+            'retrySyncConfirm' => __('Are you sure you want to retry syncing this order?', 'mic-woo-sync'),
             'manualSyncUrl' => wp_nonce_url(admin_url('admin-ajax.php?action=manual_sync&order_id='), 'manual_sync'),
             'willSync' => __('Will sync', 'mic-woo-sync'),
             'wontSync' => __('Won\'t sync', 'mic-woo-sync'),
+            'retrying' => __('Retrying...', 'mic-woo-sync'),
+            'retryFailed' => __('Retry failed:', 'mic-woo-sync'),
             'skuWarning' => __('⚠️ This product has no SKU and will not sync with the Made in China Laravel app.\n\nDo you want to continue anyway?', 'mic-woo-sync'),
             'synced' => __('Synced', 'mic-woo-sync'),
             'notSynced' => __('Not Synced', 'mic-woo-sync'),
@@ -257,8 +264,8 @@ class MICWooToAppSyncPlugin {
      */
     public function woocommerce_missing_notice() {
         echo '<div class="notice notice-error"><p>';
-        echo '<strong>MIC Woo to App Sync:</strong> ';
-        echo 'This plugin requires WooCommerce to be installed and activated.';
+        echo '<strong>' . __('MIC Woo to App Sync:', 'mic-woo-sync') . '</strong> ';
+        echo __('This plugin requires WooCommerce to be installed and activated.', 'mic-woo-sync');
         echo '</p></div>';
     }
     
@@ -267,10 +274,10 @@ class MICWooToAppSyncPlugin {
      */
     public function debug_notice() {
         echo '<div class="notice notice-info"><p>';
-        echo '<strong>Debug Info:</strong> ';
-        echo 'MIC Woo to App Sync plugin is active. ';
-        echo 'WooCommerce version: ' . (defined('WC_VERSION') ? WC_VERSION : 'Unknown') . '. ';
-        echo 'HPOS enabled: ' . (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil') ? 'Yes' : 'No');
+        echo '<strong>' . __('Debug Info:', 'mic-woo-sync') . '</strong> ';
+        echo __('MIC Woo to App Sync plugin is active.', 'mic-woo-sync') . ' ';
+        echo __('WooCommerce version:', 'mic-woo-sync') . ' ' . (defined('WC_VERSION') ? WC_VERSION : __('Unknown', 'mic-woo-sync')) . '. ';
+        echo __('HPOS enabled:', 'mic-woo-sync') . ' ' . (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil') ? __('Yes', 'mic-woo-sync') : __('No', 'mic-woo-sync'));
         echo '</p></div>';
     }
     
@@ -332,8 +339,8 @@ class MICWooToAppSyncPlugin {
     
     public function add_admin_menu() {
         add_menu_page(
-            'MIC Woo to App Sync',
-            'MIC Sync',
+            __('MIC Woo to App Sync', 'mic-woo-sync'),
+            __('MIC Sync', 'mic-woo-sync'),
             'manage_options',
             'mic-woo-sync',
             array($this, 'admin_page'),
@@ -343,8 +350,8 @@ class MICWooToAppSyncPlugin {
         
         add_submenu_page(
             'mic-woo-sync',
-            'Settings',
-            'Settings',
+            __('Settings', 'mic-woo-sync'),
+            __('Settings', 'mic-woo-sync'),
             'manage_options',
             'mic-woo-sync',
             array($this, 'admin_page')
@@ -352,8 +359,8 @@ class MICWooToAppSyncPlugin {
         
         add_submenu_page(
             'mic-woo-sync',
-            'Sync Logs',
-            'Sync Logs',
+            __('Sync Logs', 'mic-woo-sync'),
+            __('Sync Logs', 'mic-woo-sync'),
             'manage_options',
             'mic-sync-logs',
             array($this, 'logs_page')
@@ -361,18 +368,13 @@ class MICWooToAppSyncPlugin {
         
         add_submenu_page(
             'mic-woo-sync',
-            'Analytics',
-            'Analytics',
+            __('Analytics', 'mic-woo-sync'),
+            __('Analytics', 'mic-woo-sync'),
             'manage_options',
             'mic-analytics',
             array($this, 'analytics_page')
         );
     }
-    
-    
-    
-    
-    
     
     /**
      * Check if plugin is properly configured
@@ -383,19 +385,24 @@ class MICWooToAppSyncPlugin {
     }
     
     /**
-     * Admin page content with improved UI
+     * Admin page content with improved UI and proper translations
      */
     public function admin_page() {
         // Save settings
-        if (isset($_POST['submit']) && wp_verify_nonce($_POST['mic_nonce'], 'mic_save_settings')) {
-            $options = array(
-                'laravel_url' => sanitize_url($_POST['laravel_url']),
-                'webhook_secret' => sanitize_text_field($_POST['webhook_secret']),
-                'sync_on_status' => isset($_POST['sync_on_status']) ? $_POST['sync_on_status'] : array('completed', 'processing')
-            );
-            
-            update_option($this->option_name, $options);
-            echo '<div class="notice notice-success is-dismissible"><p><i class="ri-checkbox-circle-line"></i> ' . __('Settings saved successfully!', 'mic-woo-sync') . '</p></div>';
+        if (isset($_POST['submit'])) {
+            // Debug: Check if form is being submitted
+            if (!wp_verify_nonce($_POST['mic_nonce'], 'mic_save_settings')) {
+                echo '<div class="notice notice-error is-dismissible"><p>' . __('Security check failed. Please try again.', 'mic-woo-sync') . '</p></div>';
+            } else {
+                $options = array(
+                    'laravel_url' => sanitize_url($_POST['laravel_url']),
+                    'webhook_secret' => sanitize_text_field($_POST['webhook_secret']),
+                    'sync_on_status' => isset($_POST['sync_on_status']) ? $_POST['sync_on_status'] : array('completed', 'processing')
+                );
+                
+                update_option($this->option_name, $options);
+                echo '<div class="notice notice-success is-dismissible"><p><i class="ri-checkbox-circle-line"></i> ' . __('Settings saved successfully!', 'mic-woo-sync') . '</p></div>';
+            }
         }
 
         $options = get_option($this->option_name);
@@ -425,7 +432,7 @@ class MICWooToAppSyncPlugin {
             <div class="mic-card">
                 <h2><i class="ri-settings-3-line"></i> <?php _e('Configuration', 'mic-woo-sync'); ?></h2>
                 
-                <form method="post">
+                <form method="post" action="" class="mic-settings-form">
                     <?php wp_nonce_field('mic_save_settings', 'mic_nonce'); ?>
                     
                     <table class="form-table">
@@ -466,9 +473,7 @@ class MICWooToAppSyncPlugin {
                     </table>
                     
                     <p class="submit">
-                        <button type="submit" name="submit" class="mic-button">
-                            <i class="ri-save-line"></i> <?php _e('Save Settings', 'mic-woo-sync'); ?>
-                        </button>
+                        <input type="submit" name="submit" value="<?php echo esc_attr(__('Save Settings', 'mic-woo-sync')); ?>" class="button button-primary" />
                     </p>
                 </form>
             </div>
@@ -476,10 +481,6 @@ class MICWooToAppSyncPlugin {
             <div class="mic-card">
                 <h2><i class="ri-pulse-line"></i> <?php _e('Connection Test', 'mic-woo-sync'); ?></h2>
                 <p><?php _e('Test the connection to your Laravel application. This will verify that your Laravel app is accessible and can receive requests from WooCommerce.', 'mic-woo-sync'); ?></p>
-                
-                <div class="mic-notice mic-notice-info">
-                    <p><strong><?php _e('Note:', 'mic-woo-sync'); ?></strong> <?php _e('If the test fails but orders are still syncing successfully, the issue might be with the test endpoint or CORS settings. The actual sync functionality may work fine.', 'mic-woo-sync'); ?></p>
-                </div>
                 
                 <div class="mic-test-buttons">
                     <button type="button" class="mic-button mic-button-secondary" id="basic-test-btn">
@@ -534,6 +535,9 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         <?php
     }
     
+    /**
+     * FIXED: Connection test with same authentication as actual sync
+     */
     public function test_connection() {
         check_ajax_referer('mic_test_connection', 'nonce');
         
@@ -541,107 +545,94 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $laravel_url = rtrim($options['laravel_url'], '/');
         
         if (empty($laravel_url)) {
-            wp_send_json_error('Laravel URL not configured. Please enter your Laravel app URL in the settings above.');
+            wp_send_json_error(__('Laravel URL not configured. Please enter your Laravel app URL in the settings above.', 'mic-woo-sync'));
             return;
         }
         
         if (empty($options['webhook_secret'])) {
-            wp_send_json_error('Webhook secret not configured. Please enter your webhook secret in the settings above.');
+            wp_send_json_error(__('Webhook secret not configured. Please enter your webhook secret in the settings above.', 'mic-woo-sync'));
             return;
         }
         
         // Add debug info if WP_DEBUG is enabled
         $debug_info = '';
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            $debug_info = "\n\nDebug Info:\n- Laravel URL: $laravel_url\n- WordPress Site URL: " . get_site_url();
+            $debug_info = "\n\n" . __('Debug Info:', 'mic-woo-sync') . "\n- " . __('Laravel URL:', 'mic-woo-sync') . " $laravel_url\n- " . __('WordPress Site URL:', 'mic-woo-sync') . " " . get_site_url();
         }
         
+        // Use regular sync endpoint with realistic test data
         $test_url = $laravel_url . '/api/v1/woocommerce-sync';
         
-        // Simple test with proper authentication - send a test POST request with webhook secret
+        // FIXED: Send realistic order data that matches Laravel validation
+        $test_order_id = 999990000 + (current_time('timestamp') % 9999); // Generate test order ID in 999990000-999999999 range
         $test_data = array(
-            'test' => true,
-            'message' => 'Connection test from WooCommerce plugin',
-            'timestamp' => current_time('timestamp'),
-            'webhook_secret' => $options['webhook_secret']
+            'order_id' => $test_order_id, // Integer as required by Laravel
+            'email' => 'test@' . parse_url(get_site_url(), PHP_URL_HOST),
+            'name' => 'WP Connection Test - ' . get_bloginfo('name'),
+            'products' => array(
+                array(
+                    'name' => 'Test Product - Connection Verification',
+                    'sku' => 'TEST-CONNECTION-' . current_time('timestamp'),
+                    'quantity' => 1,
+                    'price' => 0.01
+                )
+            ),
+            'total' => 0.01,
+            'currency' => get_woocommerce_currency(),
+            'status' => 'test-connection',
+            'created_at' => current_time('mysql'),
+            'test_connection' => true,
+            'wp_domain' => parse_url(get_site_url(), PHP_URL_HOST),
+            'wp_site_name' => get_bloginfo('name')
         );
+        
+        $payload = wp_json_encode($test_data);
+        $signature = base64_encode(hash_hmac('sha256', $payload, $options['webhook_secret'], true));
         
         $test_response = wp_remote_post($test_url, array(
             'timeout' => 15,
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'X-Webhook-Secret' => $options['webhook_secret']
+                'X-WC-Webhook-Signature' => $signature  // Use same header as actual sync
             ),
-            'body' => wp_json_encode($test_data)
+            'body' => $payload
         ));
         
         if (is_wp_error($test_response)) {
-            wp_send_json_error('Connection failed: ' . $test_response->get_error_message() . $debug_info);
+            wp_send_json_error(__('Connection test failed', 'mic-woo-sync') . ': ' . $test_response->get_error_message() . $debug_info);
             return;
         }
         
         $response_code = wp_remote_retrieve_response_code($test_response);
         $response_body = wp_remote_retrieve_body($test_response);
         
-        // Check response codes
+        // Check response codes with proper translations
         if ($response_code === 200 || $response_code === 201) {
-            wp_send_json_success('✅ Connection successful! Laravel app is responding and accepting requests.' . $debug_info);
-        } elseif ($response_code === 401) {
-            // Try a simple health check first to see if basic connectivity works
-            $health_url = $laravel_url . '/api/health';
-            $health_response = wp_remote_get($health_url, array(
-                'timeout' => 10,
-                'headers' => array('Accept' => 'application/json')
+            wp_send_json_success(array(
+                'message' => __('Connection test completed successfully! Your Laravel app received and processed the test order data correctly.', 'mic-woo-sync') . 
+                "\n\n" . __('Test data sent:', 'mic-woo-sync') . 
+                "\n- " . __('Domain:', 'mic-woo-sync') . " " . parse_url(get_site_url(), PHP_URL_HOST) .
+                "\n- " . __('Site name:', 'mic-woo-sync') . " " . get_bloginfo('name') .
+                "\n- " . __('Test order ID:', 'mic-woo-sync') . " " . $test_order_id .
+                $debug_info
             ));
-            
-            if (!is_wp_error($health_response) && wp_remote_retrieve_response_code($health_response) === 200) {
-                wp_send_json_error("❌ Authentication failed (HTTP 401) but basic connectivity works.\n\nPlease check:\n1. Webhook secret is correct in WordPress settings\n2. Laravel app validates the webhook secret properly\n3. No extra authentication middleware is blocking the sync endpoint\n4. Laravel route is configured to accept the webhook secret" . $debug_info);
-            } else {
-                wp_send_json_error("❌ Authentication failed (HTTP 401). Please check:\n1. Webhook secret is correct\n2. Laravel app validates the webhook secret properly\n3. No extra authentication middleware is blocking the request\n\n💡 Tip: Try testing with a simple GET request to $laravel_url first to verify basic connectivity." . $debug_info);
-            }
-        } elseif ($response_code === 403) {
-            wp_send_json_error("❌ Access forbidden (HTTP 403). Please check:\n1. CORS settings allow requests from " . get_site_url() . "\n2. Laravel app allows external requests\n3. No firewall or security middleware is blocking the request" . $debug_info);
+        } elseif ($response_code === 401) {
+            // Enhanced error message for 401 errors
+            wp_send_json_error(__('❌ Authentication failed (HTTP 401). The webhook signature verification failed.', 'mic-woo-sync') . "\n\n" . 
+                __('Possible causes:', 'mic-woo-sync') . 
+                "\n- " . __('Incorrect webhook secret key', 'mic-woo-sync') .
+                "\n- " . __('Signature verification method mismatch', 'mic-woo-sync') .
+                "\n- " . __('CORS settings blocking requests', 'mic-woo-sync') .
+                $debug_info);
         } elseif ($response_code === 404) {
-            wp_send_json_error("❌ Endpoint not found (HTTP 404). Please check:\n1. The route '/api/v1/woocommerce-sync' exists in your Laravel app\n2. The URL is correct: $test_url\n3. Laravel routes are properly configured\n\n💡 Tip: Make sure your Laravel app has this route defined in routes/api.php" . $debug_info);
-        } elseif ($response_code === 405) {
-            wp_send_json_error("❌ Method not allowed (HTTP 405). Please check:\n1. The route accepts POST requests\n2. Laravel route is configured for POST method\n\n💡 Tip: Check your Laravel route definition in routes/api.php" . $debug_info);
+            wp_send_json_error(__('❌ Endpoint not found (HTTP 404). Please check that /api/v1/woocommerce-sync exists in your Laravel app.', 'mic-woo-sync') . $debug_info);
+        } elseif ($response_code === 422) {
+            wp_send_json_error(__('❌ Validation error (HTTP 422): Your Laravel app rejected the test data.', 'mic-woo-sync') . "\n\n" . 
+                __('This usually means your Laravel validation rules are different from what the plugin is sending.', 'mic-woo-sync') . "\n\n" . 
+                __('Raw response:', 'mic-woo-sync') . " $response_body" . $debug_info);
         } else {
-            wp_send_json_error("❌ Unexpected response (HTTP $response_code): $response_body\n\nPlease check Laravel logs for more details." . $debug_info);
-        }
-    }
-    
-    /**
-     * Basic connectivity test - simple GET request to check if Laravel app is reachable
-     */
-    public function basic_connectivity_test() {
-        check_ajax_referer('mic_test_connection', 'nonce');
-        
-        $options = get_option($this->option_name);
-        $laravel_url = rtrim($options['laravel_url'], '/');
-        
-        if (empty($laravel_url)) {
-            wp_send_json_error('Laravel URL not configured. Please enter your Laravel app URL in the settings above.');
-            return;
-        }
-        
-        // Try a simple GET request to the base URL first
-        $base_response = wp_remote_get($laravel_url, array(
-            'timeout' => 10,
-            'headers' => array('Accept' => 'text/html,application/json')
-        ));
-        
-        if (is_wp_error($base_response)) {
-            wp_send_json_error('❌ Basic connectivity failed: ' . $base_response->get_error_message() . "\n\nPlease check:\n1. Laravel app is running\n2. URL is correct: $laravel_url\n3. No firewall blocking the connection");
-            return;
-        }
-        
-        $base_code = wp_remote_retrieve_response_code($base_response);
-        
-        if ($base_code === 200) {
-            wp_send_json_success('✅ Basic connectivity successful! Laravel app is reachable at ' . $laravel_url);
-        } else {
-            wp_send_json_error("❌ Basic connectivity failed (HTTP $base_code). Laravel app responded but with an error.\n\nPlease check:\n1. Laravel app is running properly\n2. No maintenance mode or errors\n3. URL is correct: $laravel_url");
+            wp_send_json_error(__('❌ Unexpected response', 'mic-woo-sync') . " (HTTP $response_code): $response_body" . $debug_info);
         }
     }
     
@@ -652,7 +643,7 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         check_ajax_referer('mic_sync_order', 'nonce');
         
         if (!current_user_can('manage_woocommerce')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
             return;
         }
         
@@ -660,19 +651,19 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $order = wc_get_order($order_id);
         
         if (!$order) {
-            wp_send_json_error('Order not found');
+            wp_send_json_error(__('Order not found', 'mic-woo-sync'));
             return;
         }
         
         // Check if plugin is configured
         $options = get_option($this->option_name);
         if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            wp_send_json_error('Plugin not configured. Please configure Laravel URL and webhook secret.');
+            wp_send_json_error(__('Plugin not configured. Please configure Laravel URL and webhook secret.', 'mic-woo-sync'));
             return;
         }
         
-        // Process the sync
-        $this->process_order_sync($order_id, $order);
+        // Process the sync (force sync for manual sync regardless of status)
+        $this->process_order_sync_force($order_id, $order);
         
         // Get updated sync status
         $synced = $order->get_meta('_laravel_synced');
@@ -680,12 +671,12 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         
         if ($synced) {
             wp_send_json_success(array(
-                'message' => 'Order synced successfully!',
+                'message' => __('Order sync successful!', 'mic-woo-sync'),
                 'status' => 'synced',
                 'sync_time' => $sync_time
             ));
         } else {
-            wp_send_json_error('Order sync failed. Check the logs for details.');
+            wp_send_json_error(__('Order sync failed. Check the logs for details.', 'mic-woo-sync'));
         }
     }
     
@@ -696,7 +687,7 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         check_ajax_referer('mic_retry_sync', 'nonce');
         
         if (!current_user_can('manage_woocommerce')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
             return;
         }
         
@@ -705,19 +696,19 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $order = wc_get_order($order_id);
         
         if (!$order) {
-            wp_send_json_error('Order not found');
+            wp_send_json_error(__('Order not found', 'mic-woo-sync'));
             return;
         }
         
         // Check if plugin is configured
         $options = get_option($this->option_name);
         if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            wp_send_json_error('Plugin not configured. Please configure Laravel URL and webhook secret.');
+            wp_send_json_error(__('Plugin not configured. Please configure Laravel URL and webhook secret.', 'mic-woo-sync'));
             return;
         }
         
-        // Process the sync
-        $this->process_order_sync($order_id, $order);
+        // Process the sync (force sync regardless of order status for retry)
+        $this->process_order_sync_force($order_id, $order);
         
         // Get updated sync status
         $synced = $order->get_meta('_laravel_synced');
@@ -725,12 +716,12 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         
         if ($synced) {
             wp_send_json_success(array(
-                'message' => 'Order sync retry successful!',
+                'message' => __('Order sync retry successful!', 'mic-woo-sync'),
                 'status' => 'synced',
                 'sync_time' => $sync_time
             ));
         } else {
-            wp_send_json_error('Order sync retry failed. Check the logs for details.');
+            wp_send_json_error(__('Order sync retry failed. Check the logs for details.', 'mic-woo-sync'));
         }
     }
     
@@ -738,16 +729,16 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
      * AJAX handler for basic connectivity test
      */
     public function ajax_basic_test() {
-        check_ajax_referer('mic_nonce', 'nonce');
+        check_ajax_referer('mic_test_connection', 'nonce');
         
         if (!current_user_can('manage_woocommerce')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
             return;
         }
         
         $options = get_option($this->option_name);
         if (empty($options['laravel_url'])) {
-            wp_send_json_error('Laravel URL not configured');
+            wp_send_json_error(__('Laravel URL not configured', 'mic-woo-sync'));
             return;
         }
         
@@ -760,16 +751,16 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         ));
         
         if (is_wp_error($response)) {
-            wp_send_json_error('Basic connectivity test failed: ' . $response->get_error_message());
+            wp_send_json_error(__('Basic connectivity test failed:', 'mic-woo-sync') . ' ' . $response->get_error_message());
             return;
         }
         
         $code = wp_remote_retrieve_response_code($response);
         
         if ($code >= 200 && $code < 400) {
-            wp_send_json_success('Basic connectivity test completed successfully');
+            wp_send_json_success(__('Basic connectivity test completed successfully', 'mic-woo-sync'));
         } else {
-            wp_send_json_error('Basic connectivity test failed - HTTP ' . $code);
+            wp_send_json_error(__('Basic connectivity test failed - HTTP', 'mic-woo-sync') . ' ' . $code);
         }
     }
     
@@ -778,7 +769,7 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $options = get_option($this->option_name);
         
         if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            $this->log_sync($order_id, 'failed', 'Plugin not configured');
+            $this->log_sync($order_id, 'failed', __('Plugin not configured', 'mic-woo-sync'));
             return;
         }
         
@@ -795,18 +786,99 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $this->process_order_sync($order_id, $order);
     }
     
-    // Main sync processing method - WORKING LOGIC FROM FIRST PLUGIN
-    private function process_order_sync($order_id, $order) {
+    // Force sync method for retries (bypasses status check)
+    private function process_order_sync_force($order_id, $order) {
         $options = get_option($this->option_name);
         
         if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
-            $this->log_sync($order_id, 'failed', 'Plugin not configured');
+            $this->log_sync($order_id, 'failed', __('Plugin not configured', 'mic-woo-sync'));
             return;
         }
         
         $order = wc_get_order($order_id);
         if (!$order) {
-            $this->log_sync($order_id, 'failed', 'Order not found');
+            $this->log_sync($order_id, 'failed', __('Order not found', 'mic-woo-sync'));
+            return;
+        }
+        
+        // SKIP STATUS CHECK FOR FORCED RETRY
+        
+        $start_time = microtime(true);
+        
+        // Prepare order data - SAME FORMAT AS FIRST PLUGIN
+        $order_data = array(
+            'order_id' => $order_id,
+            'order_number' => $order->get_order_number(),
+            'email' => $order->get_billing_email(),
+            'name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
+            'products' => array()
+        );
+        
+        // Get products with SKUs - SAME LOGIC AS FIRST PLUGIN
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if ($product && $product->get_sku()) {
+                $order_data['products'][] = array(
+                    'sku' => $product->get_sku(),
+                    'name' => $product->get_name()
+                );
+            }
+        }
+        
+        if (empty($order_data['products'])) {
+            $this->log_sync($order_id, 'failed', __('No products with SKUs found', 'mic-woo-sync'));
+            return;
+        }
+        
+        // Send to Laravel - SAME METHOD AS FIRST PLUGIN
+        $laravel_url = rtrim($options['laravel_url'], '/') . '/api/v1/woocommerce-sync';
+        $payload = wp_json_encode($order_data);
+        $signature = base64_encode(hash_hmac('sha256', $payload, $options['webhook_secret'], true));
+        
+        $response = wp_remote_post($laravel_url, array(
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'X-WC-Webhook-Signature' => $signature
+            ),
+            'body' => $payload,
+            'timeout' => 30
+        ));
+        
+        $execution_time = microtime(true) - $start_time;
+        
+        if (is_wp_error($response)) {
+            $this->log_sync($order_id, 'failed', $response->get_error_message(), $execution_time);
+            return;
+        }
+        
+        $code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        
+        if ($code === 200 || $code === 201) {
+            $this->log_sync($order_id, 'success', __('Sync completed successfully', 'mic-woo-sync'), $execution_time);
+            
+            // Store sync metadata in order
+            $order->update_meta_data('_laravel_synced', true);
+            $order->update_meta_data('_laravel_sync_time', current_time('mysql'));
+            $order->save();
+        } else {
+            $this->log_sync($order_id, 'failed', "HTTP $code: $body", $execution_time);
+        }
+    }
+
+    // Main sync processing method - WORKING LOGIC FROM FIRST PLUGIN
+    private function process_order_sync($order_id, $order) {
+        $options = get_option($this->option_name);
+        
+        if (empty($options['laravel_url']) || empty($options['webhook_secret'])) {
+            $this->log_sync($order_id, 'failed', __('Plugin not configured', 'mic-woo-sync'));
+            return;
+        }
+        
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            $this->log_sync($order_id, 'failed', __('Order not found', 'mic-woo-sync'));
             return;
         }
         
@@ -841,7 +913,7 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         }
         
         if (empty($order_data['products'])) {
-            $this->log_sync($order_id, 'failed', 'No products with SKUs found');
+            $this->log_sync($order_id, 'failed', __('No products with SKUs found', 'mic-woo-sync'));
             return;
         }
         
@@ -871,7 +943,7 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         $body = wp_remote_retrieve_body($response);
         
         if ($code === 200 || $code === 201) {
-            $this->log_sync($order_id, 'success', 'Sync completed successfully', $execution_time);
+            $this->log_sync($order_id, 'success', __('Sync completed successfully', 'mic-woo-sync'), $execution_time);
             
             // Store sync metadata in order
             $order->update_meta_data('_laravel_synced', true);
@@ -918,6 +990,258 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
             }
         }
         return $products;
+    }
+    
+    // FIXED: Add only ONE order meta box with HPOS compatibility
+    public function add_order_meta_boxes() {
+        // Get screen - works with both legacy and HPOS
+        $screen = wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+            ? wc_get_page_screen_id( 'shop-order' )
+            : 'shop_order';
+        
+        add_meta_box(
+            'mic-order-sync',
+            __('MIC App Sync Status', 'mic-woo-sync'),
+            array($this, 'display_order_sync_meta_box'),
+            $screen,
+            'side',
+            'high'
+        );
+    }
+
+    /**
+     * FIXED: Display the order sync meta box content with proper button logic
+     */
+    public function display_order_sync_meta_box($post_or_order_object) {
+        $order = ($post_or_order_object instanceof WP_Post) ? wc_get_order($post_or_order_object->ID) : $post_or_order_object;
+        
+        if (!$order) {
+            return;
+        }
+        
+        $order_id = $order->get_id();
+        $synced = $order->get_meta('_laravel_synced');
+        $sync_time = $order->get_meta('_laravel_sync_time');
+        $sync_attempts = $order->get_meta('_laravel_sync_attempts') ?: 0;
+        $last_error = $order->get_meta('_laravel_sync_error');
+        
+        // Get sync logs for this order
+        global $wpdb;
+        $sync_logs = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$this->log_table_name} WHERE order_id = %d ORDER BY sync_time DESC LIMIT 5",
+            $order_id
+        ));
+        
+        // Check if plugin is configured
+        $is_configured = $this->is_configured();
+        
+        echo '<div class="mic-sync-meta-box">';
+        
+        // Main sync status section
+        echo '<div class="mic-sync-main-action">';
+        echo '<div class="mic-sync-main-action-content">';
+        
+        if ($is_configured) {
+            if ($synced) {
+                // SYNCED ORDER - Show status only, NO BUTTON
+                echo '<div class="mic-sync-main-status mic-synced">';
+                echo '<i class="ri-checkbox-circle-line"></i>';
+                echo '<div class="mic-sync-main-text">';
+                echo '<h4>' . __('Order Successfully Synced', 'mic-woo-sync') . '</h4>';
+                echo '<p>' . __('This order has been synchronized with your Laravel application.', 'mic-woo-sync') . '</p>';
+                if ($sync_time) {
+                    echo '<p><small>' . sprintf(__('Last sync: %s', 'mic-woo-sync'), esc_html($sync_time)) . '</small></p>';
+                }
+                echo '</div>';
+                echo '</div>';
+                
+                // NO BUTTON FOR SYNCED ORDERS
+                
+            } else {
+                // NOT SYNCED ORDER - Show sync button OR retry button if there were failed attempts
+                $has_failed_attempts = false;
+                if (!empty($sync_logs)) {
+                    foreach ($sync_logs as $log) {
+                        if ($log->sync_status === 'failed') {
+                            $has_failed_attempts = true;
+                            break;
+                        }
+                    }
+                }
+                
+                echo '<div class="mic-sync-main-status mic-not-synced">';
+                echo '<i class="ri-time-line"></i>';
+                echo '<div class="mic-sync-main-text">';
+                if ($has_failed_attempts) {
+                    echo '<h4>' . __('Order Sync Failed', 'mic-woo-sync') . '</h4>';
+                    echo '<p>' . __('Previous sync attempts have failed. You can retry the synchronization.', 'mic-woo-sync') . '</p>';
+                } else {
+                    echo '<h4>' . __('Order Not Synced', 'mic-woo-sync') . '</h4>';
+                    echo '<p>' . __('This order has not been synchronized with your Laravel application yet.', 'mic-woo-sync') . '</p>';
+                }
+                if ($last_error) {
+                    echo '<p><small class="mic-sync-error">' . esc_html($last_error) . '</small></p>';
+                }
+                echo '</div>';
+                echo '</div>';
+                
+                if ($has_failed_attempts) {
+                    // Show retry button for failed orders
+                    echo '<button type="button" class="mic-button mic-button-large mic-button-primary mic-retry-btn" data-order-id="' . esc_attr($order_id) . '">';
+                    echo '<i class="ri-refresh-line"></i> ' . __('Retry Sync', 'mic-woo-sync');
+                    echo '</button>';
+                } else {
+                    // Show regular sync button for never-synced orders
+                    echo '<button type="button" class="mic-button mic-button-large mic-button-primary mic-sync-btn" data-order-id="' . esc_attr($order_id) . '">';
+                    echo '<i class="ri-send-plane-line"></i> ' . __('Sync Order Now', 'mic-woo-sync');
+                    echo '</button>';
+                }
+            }
+        } else {
+            echo '<div class="mic-sync-main-status mic-not-configured">';
+            echo '<i class="ri-error-warning-line"></i>';
+            echo '<div class="mic-sync-main-text">';
+            echo '<h4>' . __('Plugin Not Configured', 'mic-woo-sync') . '</h4>';
+            echo '<p>' . __('Please configure the plugin settings to enable sync functionality.', 'mic-woo-sync') . '</p>';
+            echo '</div>';
+            echo '</div>';
+            
+            echo '<a href="' . admin_url('admin.php?page=mic-woo-sync') . '" class="mic-button mic-button-large">';
+            echo '<i class="ri-settings-line"></i> ' . __('Configure Plugin', 'mic-woo-sync');
+            echo '</a>';
+        }
+        
+        echo '</div>'; // Close mic-sync-main-action-content
+        echo '</div>'; // Close mic-sync-main-action
+        
+        // Sync status section
+        if ($is_configured) {
+            echo '<div class="mic-sync-status-section">';
+            echo '<h4><i class="ri-information-line"></i> ' . __('Current Status', 'mic-woo-sync') . '</h4>';
+            
+            echo '<div class="mic-sync-status-row">';
+            echo '<span class="mic-sync-label"><i class="ri-pulse-line"></i> ' . __('Status:', 'mic-woo-sync') . '</span>';
+            if ($synced) {
+                echo '<span class="mic-sync-value mic-sync-success-value">' . __('Successfully Synced', 'mic-woo-sync') . '</span>';
+            } else {
+                echo '<span class="mic-sync-value mic-sync-pending-value">' . __('Not Synced', 'mic-woo-sync') . '</span>';
+            }
+            echo '</div>';
+            
+            if ($sync_time) {
+                echo '<div class="mic-sync-status-row">';
+                echo '<span class="mic-sync-label"><i class="ri-time-line"></i> ' . __('Last Sync Time:', 'mic-woo-sync') . '</span>';
+                echo '<span class="mic-sync-value">' . esc_html($sync_time) . '</span>';
+                echo '</div>';
+            }
+            
+            if ($sync_attempts > 0) {
+                echo '<div class="mic-sync-status-row">';
+                echo '<span class="mic-sync-label"><i class="ri-repeat-line"></i> ' . __('Total Attempts:', 'mic-woo-sync') . '</span>';
+                echo '<span class="mic-sync-value">' . intval($sync_attempts) . '</span>';
+                echo '</div>';
+            }
+            
+            if ($last_error && !$synced) {
+                echo '<div class="mic-sync-status-row">';
+                echo '<span class="mic-sync-label"><i class="ri-error-warning-line"></i> ' . __('Last Error:', 'mic-woo-sync') . '</span>';
+                echo '<span class="mic-sync-value mic-sync-error-value">' . esc_html($last_error) . '</span>';
+                echo '</div>';
+            }
+            echo '</div>';
+        }
+        
+        // Order details section
+        echo '<div class="mic-sync-details-section">';
+        echo '<h4><i class="ri-file-list-line"></i> ' . __('Order Information', 'mic-woo-sync') . '</h4>';
+        echo '<div class="mic-order-details">';
+        
+        echo '<div class="mic-order-detail-row">';
+        echo '<span class="mic-order-label">' . __('Customer:', 'mic-woo-sync') . '</span>';
+        echo '<span class="mic-order-value">' . esc_html($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()) . '</span>';
+        echo '</div>';
+        
+        echo '<div class="mic-order-detail-row">';
+        echo '<span class="mic-order-label">' . __('Email:', 'mic-woo-sync') . '</span>';
+        echo '<span class="mic-order-value">' . esc_html($order->get_billing_email()) . '</span>';
+        echo '</div>';
+        
+        echo '<div class="mic-order-detail-row">';
+        echo '<span class="mic-order-label">' . __('Total:', 'mic-woo-sync') . '</span>';
+        echo '<span class="mic-order-value">' . $order->get_formatted_order_total() . '</span>';
+        echo '</div>';
+        
+        echo '</div>'; // Close mic-order-details
+        echo '</div>'; // Close mic-sync-details-section
+        
+        // Products section
+        echo '<div class="mic-products-section">';
+        echo '<h4><i class="ri-shopping-bag-line"></i> ' . __('Products', 'mic-woo-sync') . '</h4>';
+        
+        $products = array();
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if ($product) {
+                $sku = $product->get_sku();
+                $products[] = array(
+                    'name' => $product->get_name(),
+                    'sku' => $sku,
+                    'quantity' => $item->get_quantity(),
+                    'price' => $item->get_total()
+                );
+            }
+        }
+        
+        if (!empty($products)) {
+            echo '<div class="mic-products-list">';
+            foreach ($products as $product) {
+                echo '<div class="mic-product-item">';
+                echo '<div class="mic-product-info">';
+                echo '<span class="mic-product-name">' . esc_html($product['name']) . '</span>';
+                echo '<span class="mic-product-sku">' . __('SKU:', 'mic-woo-sync') . ' ' . esc_html($product['sku'] ?: __('No SKU', 'mic-woo-sync')) . '</span>';
+                echo '</div>';
+                echo '<div class="mic-product-meta">';
+                echo '<span class="mic-product-qty">' . __('Qty:', 'mic-woo-sync') . ' ' . esc_html($product['quantity']) . '</span>';
+                echo '<span class="mic-product-price">' . wc_price($product['price']) . '</span>';
+                echo '</div>';
+                echo '</div>';
+            }
+            echo '</div>';
+        } else {
+            echo '<p class="mic-no-products">' . __('No products found in this order.', 'mic-woo-sync') . '</p>';
+        }
+        echo '</div>';
+        
+        // Sync history section
+        if (!empty($sync_logs)) {
+            echo '<div class="mic-sync-history-section">';
+            echo '<h4><i class="ri-history-line"></i> ' . __('Sync History', 'mic-woo-sync') . '</h4>';
+            echo '<div class="mic-sync-history-list">';
+            foreach ($sync_logs as $log) {
+                $status_class = 'mic-status-' . $log->sync_status;
+                $status_icon = $log->sync_status === 'success' ? 'check-circle-line' : 
+                              ($log->sync_status === 'failed' ? 'close-circle-line' : 'time-line');
+                
+                echo '<div class="mic-sync-history-item">';
+                echo '<div class="mic-sync-history-header">';
+                echo '<span class="mic-status-badge ' . $status_class . '">';
+                echo '<i class="ri-' . $status_icon . '"></i> ' . ucfirst($log->sync_status);
+                echo '</span>';
+                echo '<span class="mic-sync-history-time">' . date('M j, Y H:i:s', strtotime($log->sync_time)) . '</span>';
+                echo '</div>';
+                if ($log->response_message) {
+                    echo '<div class="mic-sync-history-message">' . esc_html($log->response_message) . '</div>';
+                }
+                if ($log->execution_time > 0) {
+                    echo '<div class="mic-sync-history-duration">' . sprintf(__('Duration: %s seconds', 'mic-woo-sync'), number_format($log->execution_time, 3)) . '</div>';
+                }
+                echo '</div>';
+            }
+            echo '</div>';
+            echo '</div>';
+        }
+        
+        echo '</div>'; // Close mic-sync-meta-box
     }
     
     // Keep all the UI methods from the second plugin but fix the sync logic
@@ -1001,7 +1325,7 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
     }
     
     /**
-     * FIXED: Display logs table with proper action buttons
+     * FIXED: Display logs table with clickable products and proper action buttons
      */
     private function display_logs_table($logs) {
         echo '<table class="mic-logs-table">';
@@ -1032,8 +1356,10 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
             $products = json_decode($log->products_data, true);
             echo '<td>';
             if (!empty($products)) {
-                echo '<span class="mic-expandable">';
-                echo '<i class="ri-eye-line"></i> ' . count($products) . ' ' . __('product(s)', 'mic-woo-sync');
+                // FIXED: Make the entire span clickable (both icon and text)
+                echo '<span class="mic-expandable" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">';
+                echo '<i class="ri-eye-line"></i>';
+                echo '<span>' . count($products) . ' ' . __('product(s)', 'mic-woo-sync') . '</span>';
                 echo '</span>';
                 echo '<div class="mic-expandable-content">';
                 foreach ($products as $product) {
@@ -1115,12 +1441,12 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
     
     public function clear_logs() {
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error(__('Unauthorized', 'mic-woo-sync'));
             return;
         }
         
         if (!wp_verify_nonce($_POST['nonce'], 'mic_clear_logs')) {
-            wp_send_json_error('Security check failed');
+            wp_send_json_error(__('Security check failed', 'mic-woo-sync'));
             return;
         }
         
@@ -1139,9 +1465,11 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         }
         
         if ($result !== false) {
-            wp_send_json_success("Cleared $result log entries");
+            wp_send_json_success(array(
+                'message' => sprintf(__('Cleared %d log entries', 'mic-woo-sync'), $result)
+            ));
         } else {
-            wp_send_json_error('Failed to clear logs');
+            wp_send_json_error(__('Failed to clear logs', 'mic-woo-sync'));
         }
     }
     
@@ -1378,227 +1706,16 @@ WOOCOMMERCE_WEBHOOK_SECRET=<?php echo esc_html($webhook_secret ?: 'your-secret-h
         return $stats;
     }
     
-    // Add order meta box
-    public function add_order_meta_box() {
-        add_meta_box(
-            'mic-sync-status',
-            'MIC Woo to App Sync',
-            array($this, 'order_meta_box_content'),
-            'shop_order',
-            'side',
-            'default'
-        );
-    }
-    
-    public function order_meta_box_content($post) {
-        $order = wc_get_order($post->ID);
-        $synced = $order->get_meta('_laravel_synced');
-        $sync_time = $order->get_meta('_laravel_sync_time');
-        
-        // Check if plugin is configured
-        $options = get_option($this->option_name);
-        $is_configured = !empty($options['laravel_url']) && !empty($options['webhook_secret']);
-        
-        if ($synced) {
-            echo '<div class="mic-sync-info mic-sync-success">';
-            echo '<p><strong><i class="ri-check-circle-line"></i> ' . __('Status:', 'mic-woo-sync') . '</strong> ' . __('Synced', 'mic-woo-sync') . '</p>';
-            echo '<p><strong><i class="ri-time-line"></i> ' . __('Sync Time:', 'mic-woo-sync') . '</strong> ' . esc_html($sync_time) . '</p>';
-            echo '</div>';
-            
-            // Add resync button for synced orders
-            if ($is_configured) {
-                echo '<div class="mic-sync-actions">';
-                echo '<button type="button" class="mic-button mic-button-secondary mic-resync-btn" data-order-id="' . esc_attr($post->ID) . '">';
-                echo '<i class="ri-refresh-line"></i> ' . __('Resync Order', 'mic-woo-sync');
-                echo '</button>';
-                echo '</div>';
-            }
-        } else {
-            echo '<div class="mic-sync-info mic-sync-pending">';
-            echo '<p><strong><i class="ri-time-line"></i> ' . __('Status:', 'mic-woo-sync') . '</strong> ' . __('Not Synced', 'mic-woo-sync') . '</p>';
-            echo '<p><em>' . __('This order will be synced when payment is completed.', 'mic-woo-sync') . '</em></p>';
-            echo '</div>';
-            
-            // Add manual sync button for unsynced orders
-            if ($is_configured) {
-                echo '<div class="mic-sync-actions">';
-                echo '<button type="button" class="mic-button mic-button-primary mic-sync-btn" data-order-id="' . esc_attr($post->ID) . '">';
-                echo '<i class="ri-send-plane-line"></i> ' . __('Sync Now', 'mic-woo-sync');
-                echo '</button>';
-                echo '</div>';
-            }
-        }
-        
-        // Show configuration warning if not configured
-        if (!$is_configured) {
-            echo '<div class="mic-sync-info mic-sync-error">';
-            echo '<p><strong><i class="ri-error-warning-line"></i> ' . __('Plugin Not Configured', 'mic-woo-sync') . '</strong></p>';
-            echo '<p><em>' . __('Please configure the plugin settings to enable manual sync.', 'mic-woo-sync') . '</em></p>';
-            echo '<p><a href="' . admin_url('admin.php?page=mic-woo-sync') . '" class="button button-small">' . __('Configure Plugin', 'mic-woo-sync') . '</a></p>';
-            echo '</div>';
-        }
-    }
-    
-    /**
-     * Add sync meta box to WooCommerce order page - ENHANCED
-     */
-    public function add_order_sync_meta_box() {
-        add_meta_box(
-            'mic_order_sync',
-            __('Order Sync Status', 'mic-woo-sync'),
-            array($this, 'order_sync_meta_box_content'),
-            'shop_order',
-            'side',
-            'high'
-        );
-    }
-    
-    /**
- * FIXED: Display sync meta box content with detailed information
- */
-public function order_sync_meta_box_content() {
-    global $post;
-    if (!$post || get_post_type($post->ID) !== 'shop_order') {
-        return;
-    }
-    $order = wc_get_order($post->ID);
-    $synced = $order->get_meta('_laravel_synced');
-    $sync_time = $order->get_meta('_laravel_sync_time');
-    $sync_attempts = $order->get_meta('_laravel_sync_attempts') ?: 0;
-    $last_error = $order->get_meta('_laravel_sync_error');
-    
-    // Get sync logs for this order
-    global $wpdb;
-    $sync_logs = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM {$this->log_table_name} WHERE order_id = %d ORDER BY sync_time DESC LIMIT 10",
-        $post->ID
-    ));
-    
-    // Check if plugin is configured
-    $options = get_option($this->option_name);
-    $is_configured = !empty($options['laravel_url']) && !empty($options['webhook_secret']);
-    
-    echo '<div class="mic-sync-meta-box">';
-    
-    if ($is_configured) {
-        if ($synced) {
-            echo '<div class="mic-sync-status mic-synced">';
-            echo '<i class="ri-check-circle-line"></i> ' . __('Successfully Synced', 'mic-woo-sync');
-            echo '</div>';
-            if ($sync_time) {
-                echo '<p><small>' . __('Last sync:', 'mic-woo-sync') . ' ' . esc_html($sync_time) . '</small></p>';
-            }
-            echo '<button type="button" class="button button-secondary mic-resync-btn" data-order-id="' . esc_attr($post->ID) . '">';
-            echo '<i class="ri-refresh-line"></i> ' . __('Resync Order', 'mic-woo-sync');
-            echo '</button>';
-        } else {
-            echo '<div class="mic-sync-status mic-not-synced">';
-            echo '<i class="ri-time-line"></i> ' . __('Not Synced', 'mic-woo-sync');
-            echo '</div>';
-            if ($sync_attempts > 0) {
-                echo '<p><small>' . __('Attempts:', 'mic-woo-sync') . ' ' . $sync_attempts . '</small></p>';
-            }
-            if ($last_error) {
-                echo '<p><small class="mic-sync-error">' . esc_html($last_error) . '</small></p>';
-            }
-            echo '<button type="button" class="button button-primary mic-sync-btn" data-order-id="' . esc_attr($post->ID) . '">';
-            echo '<i class="ri-send-plane-line"></i> ' . __('Sync Now', 'mic-woo-sync');
-            echo '</button>';
-        }
-    } else {
-        echo '<div class="mic-sync-status mic-not-configured">';
-        echo '<i class="ri-error-warning-line"></i> ' . __('Plugin Not Configured', 'mic-woo-sync');
-        echo '</div>';
-        echo '<p><small>' . __('Please configure the plugin settings to enable sync functionality.', 'mic-woo-sync') . '</small></p>';
-        echo '<a href="' . admin_url('admin.php?page=mic-woo-sync') . '" class="button button-small">' . __('Configure Plugin', 'mic-woo-sync') . '</a>';
-    }
-    
-    echo '<div class="mic-order-details">';
-    echo '<div class="mic-order-detail-row">';
-    
-    // Products Section
-    echo '<div class="mic-products-section">';
-    echo '<h4><i class="ri-shopping-bag-line"></i> ' . __('Products', 'mic-woo-sync') . '</h4>';
-    
-    $products = array();
-    foreach ($order->get_items() as $item) {
-        $product = $item->get_product();
-        if ($product) {
-            $sku = $product->get_sku();
-            $products[] = array(
-                'name' => $product->get_name(),
-                'sku' => $sku,
-                'quantity' => $item->get_quantity(),
-                'price' => $item->get_total()
-            );
-        }
-    }
-    
-    if (!empty($products)) {
-        echo '<div class="mic-products-list">';
-        foreach ($products as $product) {
-            echo '<div class="mic-product-item">';
-            echo '<div class="mic-product-info">';
-            echo '<span class="mic-product-name">' . esc_html($product['name']) . '</span>';
-            echo '<span class="mic-product-sku">SKU: ' . esc_html($product['sku'] ?: __('No SKU', 'mic-woo-sync')) . '</span>';
-            echo '</div>';
-            echo '<div class="mic-product-meta">';
-            echo '<span class="mic-product-qty">' . __('Qty:', 'mic-woo-sync') . ' ' . esc_html($product['quantity']) . '</span>';
-            echo '<span class="mic-product-price">' . wc_price($product['price']) . '</span>';
-            echo '</div>';
-            echo '</div>';
-        }
-        echo '</div>';
-    } else {
-        echo '<p class="mic-no-products">' . __('No products found in this order.', 'mic-woo-sync') . '</p>';
-    }
-    echo '</div>';
-    
-    // Sync History Section
-    if (!empty($sync_logs)) {
-        echo '<div class="mic-sync-history-section">';
-        echo '<h4><i class="ri-history-line"></i> ' . __('Sync History', 'mic-woo-sync') . '</h4>';
-        echo '<div class="mic-sync-history-list">';
-        foreach ($sync_logs as $log) {
-            $status_class = 'mic-status-' . $log->sync_status;
-            $status_icon = $log->sync_status === 'success' ? 'check-circle-line' : 
-                          ($log->sync_status === 'failed' ? 'close-circle-line' : 'time-line');
-            
-            echo '<div class="mic-sync-history-item">';
-            echo '<div class="mic-sync-history-header">';
-            echo '<span class="mic-status-badge ' . $status_class . '">';
-            echo '<i class="ri-' . $status_icon . '"></i> ' . ucfirst($log->sync_status);
-            echo '</span>';
-            echo '<span class="mic-sync-history-time">' . date('M j, Y H:i:s', strtotime($log->sync_time)) . '</span>';
-            echo '</div>';
-            if ($log->response_message) {
-                echo '<div class="mic-sync-history-message">' . esc_html($log->response_message) . '</div>';
-            }
-            if ($log->execution_time > 0) {
-                echo '<div class="mic-sync-history-duration">Duration: ' . number_format($log->execution_time, 3) . 's</div>';
-            }
-            echo '</div>';
-        }
-        echo '</div>';
-        echo '</div>';
-    }
-    
-    echo '</div>'; // Close mic-order-detail-row
-    echo '</div>'; // Close mic-order-details
-    echo '</div>'; // Close mic-sync-meta-box
-}
-    
-    
     // Manual sync
     public function manual_sync() {
         if (!wp_verify_nonce($_GET['_wpnonce'], 'manual_sync')) {
-            wp_die('Security check failed');
+            wp_die(__('Security check failed', 'mic-woo-sync'));
         }
         
         $order_id = intval($_GET['order_id']);
         
         if (!current_user_can('manage_woocommerce')) {
-            wp_die('Unauthorized');
+            wp_die(__('Unauthorized', 'mic-woo-sync'));
         }
         
         $order = wc_get_order($order_id);
@@ -1647,12 +1764,17 @@ public function order_sync_meta_box_content() {
         }
     }
     
-    // Add sync status column to orders list
+    /**
+     * FIXED: Add sync status column to orders list
+     */
     public function add_sync_status_column($columns) {
         $columns['mic_sync_status'] = __('Sync Status', 'mic-woo-sync');
         return $columns;
     }
     
+    /**
+     * FIXED: Display sync status column with proper button logic
+     */
     public function display_sync_status_column($column, $post_id) {
         if ($column !== 'mic_sync_status') {
             return;
@@ -1673,33 +1795,45 @@ public function order_sync_meta_box_content() {
         echo '<div class="mic-sync-column-info">';
         
         if ($synced) {
+            // SYNCED ORDER - Show synced status only, NO BUTTON
             echo '<div class="mic-sync-status mic-synced">';
             echo '<span class="mic-sync-badge mic-synced-badge">';
-            echo '<i class="ri-check-circle-line"></i> ' . __('Synced', 'mic-woo-sync');
+            echo '<i class="ri-checkbox-circle-line"></i> ' . __('Synced', 'mic-woo-sync');
             echo '</span>';
             if ($sync_time) {
                 echo '<br><small class="mic-sync-time">' . date('M j, Y H:i', strtotime($sync_time)) . '</small>';
             }
             echo '</div>';
             
-            // Add resync button
-            if ($is_configured) {
-                echo '<button type="button" class="mic-sync-btn mic-resync-btn" data-order-id="' . esc_attr($post_id) . '" title="' . __('Resync Order', 'mic-woo-sync') . '">';
-                echo '<i class="ri-refresh-line"></i>';
-                echo '</button>';
-            }
+            // NO BUTTON FOR SYNCED ORDERS
+            
         } else {
+            // NOT SYNCED ORDER - Show not synced status with sync button
             echo '<div class="mic-sync-status mic-not-synced">';
             echo '<span class="mic-sync-badge mic-not-synced-badge">';
             echo '<i class="ri-time-line"></i> ' . __('Not Synced', 'mic-woo-sync');
             echo '</span>';
             echo '</div>';
             
-            // Add sync button
+            // Check if there were failed attempts
+            global $wpdb;
+            $failed_attempts = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$this->log_table_name} WHERE order_id = %d AND sync_status = 'failed'",
+                $post_id
+            ));
+            
             if ($is_configured) {
-                echo '<button type="button" class="mic-sync-btn mic-sync-now-btn" data-order-id="' . esc_attr($post_id) . '" title="' . __('Sync Now', 'mic-woo-sync') . '">';
-                echo '<i class="ri-send-plane-line"></i>';
-                echo '</button>';
+                if ($failed_attempts > 0) {
+                    // Show RETRY button for orders with failed attempts
+                    echo '<button type="button" class="mic-sync-btn mic-retry-btn" data-order-id="' . esc_attr($post_id) . '" title="' . __('Retry Sync', 'mic-woo-sync') . '">';
+                    echo '<i class="ri-refresh-line"></i>';
+                    echo '</button>';
+                } else {
+                    // Show SYNC button for never-synced orders
+                    echo '<button type="button" class="mic-sync-btn mic-sync-now-btn" data-order-id="' . esc_attr($post_id) . '" title="' . __('Sync Now', 'mic-woo-sync') . '">';
+                    echo '<i class="ri-send-plane-line"></i>';
+                    echo '</button>';
+                }
             }
         }
         

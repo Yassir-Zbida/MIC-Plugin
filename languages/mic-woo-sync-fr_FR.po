@@ -15,690 +15,637 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: main.php:347
+# Main Plugin Strings
 msgid "Settings saved successfully!"
 msgstr "Paramètres sauvegardés avec succès !"
 
-#: main.php:466
 msgid "MIC Woo to App Sync"
 msgstr "Synchronisation App Made in China"
 
-#: main.php:469
-msgid "Configured"
-msgstr "Configuré"
+msgid "MIC Sync"
+msgstr "Sync MIC"
 
-#: main.php:473
-msgid "Needs Configuration"
-msgstr "Nécessite une configuration"
+msgid "Settings"
+msgstr "Paramètres"
 
-#: main.php:477
-msgid "Sync WooCommerce orders with your eBooks application"
-msgstr "Synchroniser les commandes WooCommerce avec votre application eBooks"
-
-#: main.php:481
-msgid "Configuration"
-msgstr "Configuration"
-
-#: main.php:489
-msgid "Laravel App URL"
-msgstr "URL de l'application Laravel"
-
-#: main.php:500
-msgid "The base URL of your application (without /dashboard)"
-msgstr "L'URL de base de votre application (sans /dashboard)"
-
-#: main.php:507
-msgid "Webhook Secret"
-msgstr "Secret du Webhook"
-
-#: main.php:514
-msgid "Enter your secure webhook secret"
-msgstr "Entrez votre secret de webhook sécurisé"
-
-#: main.php:518
-msgid "The secret key configured in your app's .env file (WOOCOMMERCE_WEBHOOK_SECRET)"
-msgstr "La clé secrète configurée dans le fichier .env de votre application (WOOCOMMERCE_WEBHOOK_SECRET)"
-
-#: main.php:526
-msgid "Save Settings"
-msgstr "Sauvegarder les paramètres"
-
-#: main.php:533
-msgid "Connection Test"
-msgstr "Test de connexion"
-
-#: main.php:534
-msgid "Test the connection to your Laravel application:"
-msgstr "Tester la connexion à votre application Laravel :"
-
-#: main.php:535
-msgid "Test the connection to your Laravel application. This will verify that your Laravel app is accessible and can receive requests from WooCommerce."
-msgstr "Tester la connexion à votre application Laravel. Cela vérifiera que votre application Laravel est accessible et peut recevoir des requêtes de WooCommerce."
-
-#: main.php:536
-msgid "Note:"
-msgstr "Note :"
-
-#: main.php:537
-msgid "If the test fails but orders are still syncing successfully, the issue might be with the test endpoint or CORS settings. The actual sync functionality may work fine."
-msgstr "Si le test échoue mais que les commandes se synchronisent toujours avec succès, le problème pourrait être avec le point de terminaison de test ou les paramètres CORS. La fonctionnalité de synchronisation réelle peut fonctionner correctement."
-
-#: main.php:538
-msgid "Troubleshooting Tips:"
-msgstr "Conseils de dépannage :"
-
-#: main.php:539
-msgid "Ensure your Laravel app is running and accessible from your WordPress server"
-msgstr "Assurez-vous que votre application Laravel fonctionne et est accessible depuis votre serveur WordPress"
-
-#: main.php:540
-msgid "Check that the route /api/v1/woocommerce-sync exists in your Laravel app"
-msgstr "Vérifiez que la route /api/v1/woocommerce-sync existe dans votre application Laravel"
-
-#: main.php:541
-msgid "Verify CORS settings allow requests from your WordPress domain"
-msgstr "Vérifiez que les paramètres CORS permettent les requêtes depuis votre domaine WordPress"
-
-#: main.php:542
-msgid "Check Laravel logs for any errors when the test request is made"
-msgstr "Vérifiez les journaux Laravel pour toute erreur lors de la requête de test"
-
-#: main.php:543
-msgid "Actions"
-msgstr "Actions"
-
-#: main.php:544
-msgid "Test Connection"
-msgstr "Tester la connexion"
-
-#: main.php:545
-msgid "Sync Now"
-msgstr "Synchroniser maintenant"
-
-#: main.php:546
-msgid "Resync Order"
-msgstr "Resynchroniser la commande"
-
-#: main.php:547
-msgid "Status:"
-msgstr "Statut :"
-
-#: main.php:548
-msgid "Synced"
-msgstr "Synchronisé"
-
-#: main.php:549
-msgid "Sync Time:"
-msgstr "Heure de synchronisation :"
-
-#: main.php:550
-msgid "Not Synced"
-msgstr "Non synchronisé"
-
-#: main.php:551
-msgid "This order will be synced when payment is completed."
-msgstr "Cette commande sera synchronisée lorsque le paiement sera terminé."
-
-#: main.php:552
-msgid "Plugin Not Configured"
-msgstr "Plugin non configuré"
-
-#: main.php:553
-msgid "Please configure the plugin settings to enable manual sync."
-msgstr "Veuillez configurer les paramètres du plugin pour activer la synchronisation manuelle."
-
-#: main.php:554
-msgid "Retry"
-msgstr "Réessayer"
-
-#: main.php:555
-msgid "Resync"
-msgstr "Resynchroniser"
-
-#: main.php:556
-msgid "Analytics Dashboard"
-msgstr "Tableau de bord des analyses"
-
-#: main.php:557
-msgid "Comprehensive sync performance and statistics overview"
-msgstr "Aperçu complet des performances et statistiques de synchronisation"
-
-#: main.php:558
-msgid "Synchronization Statistics and Performance Metrics"
-msgstr "Statistiques de synchronisation et métriques de performance"
-
-#: main.php:559
-msgid "View Logs"
-msgstr "Voir les journaux"
-
-#: main.php:560
-msgid "TOTAL SYNCS"
-msgstr "TOTAL DES SYNCHRONISATIONS"
-
-#: main.php:561
-msgid "All time synchronization attempts"
-msgstr "Tentatives de synchronisation de tous les temps"
-
-#: main.php:562
-msgid "All Time"
-msgstr "Tous les temps"
-
-#: main.php:563
-msgid "SUCCESSFUL"
-msgstr "RÉUSSIES"
-
-#: main.php:564
-msgid "Orders synced successfully"
-msgstr "Commandes synchronisées avec succès"
-
-#: main.php:565
-msgid "Active"
-msgstr "Actif"
-
-#: main.php:566
-msgid "FAILED"
-msgstr "ÉCHOUÉES"
-
-#: main.php:567
-msgid "Synchronization failures"
-msgstr "Échecs de synchronisation"
-
-#: main.php:568
-msgid "Issue"
-msgstr "Problème"
-
-#: main.php:569
-msgid "SUCCESS RATE"
-msgstr "TAUX DE RÉUSSITE"
-
-#: main.php:570
-msgid "Overall sync reliability"
-msgstr "Fiabilité globale de synchronisation"
-
-#: main.php:571
-msgid "Needs Attention"
-msgstr "Nécessite une attention"
-
-#: main.php:572
-msgid "PENDING"
-msgstr "EN ATTENTE"
-
-#: main.php:573
-msgid "Awaiting synchronization"
-msgstr "En attente de synchronisation"
-
-#: main.php:574
-msgid "Waiting"
-msgstr "En attente"
-
-#: main.php:575
-msgid "RECENT ACTIVITY"
-msgstr "ACTIVITÉ RÉCENTE"
-
-#: main.php:576
-msgid "Syncs in the last week"
-msgstr "Synchronisations de la semaine dernière"
-
-#: main.php:577
-msgid "7 Days"
-msgstr "7 jours"
-
-#: main.php:578
-msgid "Daily Activity Table (Last 7 Days)"
-msgstr "Tableau d'activité quotidienne (7 derniers jours)"
-
-#: main.php:579
-msgid "Detailed breakdown of synchronization activity by day"
-msgstr "Détail de l'activité de synchronisation par jour"
-
-#: main.php:579
-msgid "Date"
-msgstr "Date"
-
-#: main.php:580
-msgid "Total"
-msgstr "Total"
-
-#: main.php:581
-msgid "Success"
-msgstr "Succès"
-
-#: main.php:582
-msgid "Failed"
-msgstr "Échec"
-
-#: main.php:583
-msgid "Success Rate"
-msgstr "Taux de réussite"
-
-#: main.php:584
-msgid "No Data Available"
-msgstr "Aucune donnée disponible"
-
-#: main.php:585
-msgid "Start by processing some orders to see sync statistics"
-msgstr "Commencez par traiter quelques commandes pour voir les statistiques de synchronisation"
-
-#: main.php:579
-msgid "Basic Connectivity Test"
-msgstr "Test de connectivité de base"
-
-#: main.php:580
-msgid "Test basic connectivity to Laravel app"
-msgstr "Tester la connectivité de base à l'application Laravel"
-
-#: main.php:581
-msgid "Full Connection Test"
-msgstr "Test de connexion complet"
-
-#: main.php:582
-msgid "Setup Guide"
-msgstr "Guide de configuration"
-
-#: main.php:583
-msgid "Configure Laravel App"
-msgstr "Configurer l'application Laravel"
-
-#: main.php:584
-msgid "In your Laravel app's"
-msgstr "Dans le fichier"
-
-#: main.php:585
-msgid "file, add:"
-msgstr "de votre application Laravel, ajoutez :"
-
-#: main.php:586
-msgid "Run Migrations"
-msgstr "Exécuter les migrations"
-
-#: main.php:587
-msgid "In your Laravel app, run:"
-msgstr "Dans votre application Laravel, exécutez :"
-
-#: main.php:588
-msgid "Create Route"
-msgstr "Créer la route"
-
-#: main.php:589
-msgid "Ensure your Laravel app has the sync endpoint:"
-msgstr "Assurez-vous que votre application Laravel a le point de terminaison de synchronisation :"
-
-#: main.php:590
-msgid "Product SKUs"
-msgstr "SKU des produits"
-
-#: main.php:591
-msgid "Make sure your WooCommerce products have SKUs that match your Laravel ebook identifiers."
-msgstr "Assurez-vous que vos produits WooCommerce ont des SKU qui correspondent aux identifiants de votre ebook Laravel."
-
-#: main.php:592
-msgid "Basic connectivity test completed successfully"
-msgstr "Test de connectivité de base terminé avec succès"
-
-#: main.php:593
-msgid "Basic connectivity test failed"
-msgstr "Test de connectivité de base échoué"
-
-#: main.php:594
-msgid "Testing basic connectivity..."
-msgstr "Test de connectivité de base en cours..."
-
-#: main.php:595
-msgid "Basic connectivity test failed:"
-msgstr "Test de connectivité de base échoué :"
-
-#: main.php:596
-msgid "Laravel URL not configured"
-msgstr "URL Laravel non configurée"
-
-#: main.php:597
-msgid "Basic connectivity test failed - HTTP"
-msgstr "Test de connectivité de base échoué - HTTP"
-
-#: main.php:598
-msgid "Connection test from WooCommerce plugin"
-msgstr "Test de connexion depuis le plugin WooCommerce"
-
-#: main.php:599
-msgid "Connection test successful"
-msgstr "Test de connexion réussi"
-
-#: main.php:600
-msgid "Connection test failed"
-msgstr "Test de connexion échoué"
-
-#: main.php:601
-msgid "Laravel URL not configured. Please enter your Laravel app URL in the settings above."
-msgstr "URL Laravel non configurée. Veuillez entrer l'URL de votre application Laravel dans les paramètres ci-dessus."
-
-#: main.php:602
-msgid "Webhook secret not configured. Please enter your webhook secret in the settings above."
-msgstr "Secret du webhook non configuré. Veuillez entrer votre secret de webhook dans les paramètres ci-dessus."
-
-#: main.php:603
-msgid "Debug Info:"
-msgstr "Informations de débogage :"
-
-#: main.php:604
-msgid "Laravel URL:"
-msgstr "URL Laravel :"
-
-#: main.php:605
-msgid "WordPress Site URL:"
-msgstr "URL du site WordPress :"
-
-#: main.php:606
-msgid "Connection test completed successfully"
-msgstr "Test de connexion terminé avec succès"
-
-#: main.php:607
-msgid "Unauthorized"
-msgstr "Non autorisé"
-
-#: main.php:608
-msgid "Order not found"
-msgstr "Commande non trouvée"
-
-#: main.php:609
-msgid "Plugin not configured. Please configure Laravel URL and webhook secret."
-msgstr "Plugin non configuré. Veuillez configurer l'URL Laravel et le secret du webhook."
-
-#: main.php:610
-msgid "Order sync retry successful!"
-msgstr "Nouvelle tentative de synchronisation de commande réussie !"
-
-#: main.php:611
-msgid "Order sync retry failed. Check the logs for details."
-msgstr "Nouvelle tentative de synchronisation de commande échouée. Vérifiez les journaux pour plus de détails."
-
-#: main.php:612
-msgid "Order sync successful!"
-msgstr "Synchronisation de commande réussie !"
-
-#: main.php:613
-msgid "Order sync failed. Check the logs for details."
-msgstr "Synchronisation de commande échouée. Vérifiez les journaux pour plus de détails."
-
-#: main.php:614
-msgid "Order sync initiated"
-msgstr "Synchronisation de commande initiée"
-
-#: main.php:615
-msgid "Invalid order ID"
-msgstr "ID de commande invalide"
-
-#: main.php:616
-msgid "Order sync failed"
-msgstr "Synchronisation de commande échouée"
-
-#: main.php:617
-msgid "Order sync retry initiated"
-msgstr "Nouvelle tentative de synchronisation de commande initiée"
-
-#: main.php:618
-msgid "Log not found"
-msgstr "Journal non trouvé"
-
-#: main.php:619
-msgid "Sync retry initiated"
-msgstr "Nouvelle tentative de synchronisation initiée"
-
-#: main.php:620
-msgid "Invalid log ID"
-msgstr "ID de journal invalide"
-
-#: main.php:621
-msgid "Clear Logs"
-msgstr "Effacer les journaux"
-
-#: main.php:622
-msgid "No sync logs found."
-msgstr "Aucun journal de synchronisation trouvé."
-
-#: main.php:623
-msgid "Filter by status:"
-msgstr "Filtrer par statut :"
-
-#: main.php:624
-msgid "All Status"
-msgstr "Tous les statuts"
-
-#: main.php:625
-msgid "Filter"
-msgstr "Filtrer"
-
-#: main.php:626
-msgid "Clear"
-msgstr "Effacer"
-
-#: main.php:627
-msgid "Order ID"
-msgstr "ID de commande"
-
-#: main.php:628
-msgid "Customer"
-msgstr "Client"
-
-#: main.php:629
-msgid "Products"
-msgstr "Produits"
-
-#: main.php:630
-msgid "Response"
-msgstr "Réponse"
-
-#: main.php:631
-msgid "Time"
-msgstr "Heure"
-
-
-
-#: main.php:633
-msgid "View Order"
-msgstr "Voir la commande"
-
-#: main.php:634
-msgid "product(s)"
-msgstr "produit(s)"
-
-
-
-#: main.php:636
-msgid "Products in this order:"
-msgstr "Produits dans cette commande :"
-
-#: main.php:637
-msgid "Track all synchronization attempts and their status"
-msgstr "Suivre toutes les tentatives de synchronisation et leur statut"
-
-#: main.php:638
 msgid "Sync Logs"
 msgstr "Journaux de synchronisation"
 
+msgid "Analytics"
+msgstr "Analyses"
 
+msgid "Configured"
+msgstr "Configuré"
 
-#: main.php:640
-msgid "Stats Data:"
-msgstr "Données des statistiques :"
+msgid "Needs Configuration"
+msgstr "Nécessite une configuration"
 
-#: main.php:641
-msgid "Chart.js not yet loaded, waiting..."
-msgstr "Chart.js pas encore chargé, attente..."
+msgid "Sync WooCommerce orders with your Laravel ebook application"
+msgstr "Synchroniser les commandes WooCommerce avec votre application eBooks Laravel"
 
-#: main.php:642
-msgid "Chart.js is ready"
-msgstr "Chart.js est prêt"
+msgid "Configuration"
+msgstr "Configuration"
 
+msgid "Laravel App URL"
+msgstr "URL de l'application Laravel"
 
+msgid "The base URL of your Laravel application (without /api/v1/woocommerce-sync)"
+msgstr "L'URL de base de votre application Laravel (sans /api/v1/woocommerce-sync)"
 
-#: main.php:644
-msgid "Attempting manual chart initialization..."
-msgstr "Tentative d'initialisation manuelle des graphiques..."
+msgid "Webhook Secret"
+msgstr "Secret du Webhook"
 
-#: main.php:645
-msgid "MICCharts object found:"
-msgstr "Objet MICCharts trouvé :"
+msgid "The secret key configured in your Laravel app's .env file"
+msgstr "La clé secrète configurée dans le fichier .env de votre application Laravel"
 
-#: main.php:646
-msgid "Chart methods found, initializing..."
-msgstr "Méthodes de graphiques trouvées, initialisation..."
+msgid "Sync on Order Status"
+msgstr "Synchroniser selon le statut de commande"
 
-#: main.php:647
-msgid "Daily chart canvas:"
-msgstr "Canvas du graphique quotidien :"
+msgid "Select which order statuses should trigger sync"
+msgstr "Sélectionnez quels statuts de commande doivent déclencher la synchronisation"
 
-#: main.php:648
-msgid "Status chart canvas:"
-msgstr "Canvas du graphique de statut :"
+msgid "Save Settings"
+msgstr "Sauvegarder les paramètres"
 
-#: main.php:649
-msgid "All canvas elements:"
-msgstr "Tous les éléments canvas :"
+msgid "Connection Test"
+msgstr "Test de connexion"
 
-#: main.php:650
-msgid "Chart containers:"
-msgstr "Conteneurs de graphiques :"
+msgid "Test the connection to your Laravel application. This will verify that your Laravel app is accessible and can receive requests from WooCommerce."
+msgstr "Tester la connexion à votre application Laravel. Cela vérifiera que votre application Laravel est accessible et peut recevoir des requêtes de WooCommerce."
 
-#: main.php:1437
-msgid "Configure Plugin"
-msgstr "Configurer le Plugin"
+msgid "Note:"
+msgstr "Note :"
 
-#: main.php:1580
-msgid "Please configure the plugin settings to enable sync functionality."
-msgstr "Veuillez configurer les paramètres du plugin pour activer la fonctionnalité de synchronisation."
+msgid "If the test fails but orders are still syncing successfully, the issue might be with the test endpoint or CORS settings. The actual sync functionality may work fine."
+msgstr "Si le test échoue mais que les commandes se synchronisent toujours avec succès, le problème pourrait être avec le point de terminaison de test ou les paramètres CORS. La fonctionnalité de synchronisation réelle peut fonctionner correctement."
 
+msgid "Basic Connectivity Test"
+msgstr "Test de connectivité de base"
 
+msgid "Full Connection Test"
+msgstr "Test de connexion complet"
 
-#: main.php:1447
-msgid "Sync Details"
-msgstr "Détails de synchronisation"
+msgid "Troubleshooting Tips:"
+msgstr "Conseils de dépannage :"
 
-#: main.php:1483
-msgid "Order Synchronization Details"
-msgstr "Détails de synchronisation de la commande"
+msgid "Ensure your Laravel app is running and accessible from your WordPress server"
+msgstr "Assurez-vous que votre application Laravel fonctionne et est accessible depuis votre serveur WordPress"
 
-#: main.php:1484
-msgid "Track the synchronization status of this order with your Laravel application."
-msgstr "Suivre le statut de synchronisation de cette commande avec votre application Laravel."
+msgid "Check that the route /api/v1/woocommerce-sync exists in your Laravel app"
+msgstr "Vérifiez que la route /api/v1/woocommerce-sync existe dans votre application Laravel"
 
-#: main.php:1495
+msgid "Verify CORS settings allow requests from your WordPress domain"
+msgstr "Vérifiez que les paramètres CORS permettent les requêtes depuis votre domaine WordPress"
+
+msgid "Check Laravel logs for any errors when the test request is made"
+msgstr "Vérifiez les journaux Laravel pour toute erreur lors de la requête de test"
+
+msgid "Setup Guide"
+msgstr "Guide de configuration"
+
+msgid "Configure Laravel App"
+msgstr "Configurer l'application Laravel"
+
+msgid "In your Laravel app's"
+msgstr "Dans le fichier de votre application Laravel"
+
+msgid "file, add:"
+msgstr ", ajoutez :"
+
+msgid "Run Migrations"
+msgstr "Exécuter les migrations"
+
+msgid "In your Laravel app, run:"
+msgstr "Dans votre application Laravel, exécutez :"
+
+msgid "Create Route"
+msgstr "Créer la route"
+
+msgid "Ensure your Laravel app has the sync endpoint:"
+msgstr "Assurez-vous que votre application Laravel a le point de terminaison de synchronisation :"
+
+msgid "Product SKUs"
+msgstr "SKU des produits"
+
+msgid "Make sure your WooCommerce products have SKUs that match your Laravel ebook identifiers."
+msgstr "Assurez-vous que vos produits WooCommerce ont des SKU qui correspondent aux identifiants de votre ebook Laravel."
+
+# Connection Test Strings
+msgid "Testing..."
+msgstr "Test en cours..."
+
+msgid "Testing connection..."
+msgstr "Test de connexion en cours..."
+
+msgid "Connection successful! Laravel app is responding."
+msgstr "Connexion réussie ! L'application Laravel répond."
+
+msgid "Connection failed:"
+msgstr "Connexion échouée :"
+
+msgid "Connection error:"
+msgstr "Erreur de connexion :"
+
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
+msgid "Test Connection"
+msgstr "Tester la connexion"
+
+msgid "Laravel URL not configured. Please enter your Laravel app URL in the settings above."
+msgstr "URL Laravel non configurée. Veuillez entrer l'URL de votre application Laravel dans les paramètres ci-dessus."
+
+msgid "Webhook secret not configured. Please enter your webhook secret in the settings above."
+msgstr "Secret du webhook non configuré. Veuillez entrer votre secret de webhook dans les paramètres ci-dessus."
+
+msgid "Debug Info:"
+msgstr "Informations de débogage :"
+
+msgid "Laravel URL:"
+msgstr "URL Laravel :"
+
+msgid "WordPress Site URL:"
+msgstr "URL du site WordPress :"
+
+msgid "Connection test from WooCommerce plugin"
+msgstr "Test de connexion depuis le plugin WooCommerce"
+
+msgid "Connection test completed successfully"
+msgstr "Test de connexion terminé avec succès"
+
+msgid "Connection test failed"
+msgstr "Test de connexion échoué"
+
+msgid "Unauthorized"
+msgstr "Non autorisé"
+
+msgid "Please check your webhook secret configuration."
+msgstr "Veuillez vérifier la configuration de votre secret webhook."
+
+msgid "Endpoint not found"
+msgstr "Point de terminaison non trouvé"
+
+msgid "Please verify the sync endpoint exists in your Laravel app."
+msgstr "Veuillez vérifier que le point de terminaison de synchronisation existe dans votre application Laravel."
+
+msgid "Unexpected response"
+msgstr "Réponse inattendue"
+
+msgid "Basic connectivity test completed successfully"
+msgstr "Test de connectivité de base terminé avec succès"
+
+msgid "Basic connectivity test failed:"
+msgstr "Test de connectivité de base échoué :"
+
+msgid "Laravel URL not configured"
+msgstr "URL Laravel non configurée"
+
+msgid "Basic connectivity test failed - HTTP"
+msgstr "Test de connectivité de base échoué - HTTP"
+
+# Order Meta Box Strings
+msgid "MIC App Sync Status"
+msgstr "Statut de synchronisation App MIC"
+
 msgid "Order Successfully Synced"
 msgstr "Commande synchronisée avec succès"
 
-#: main.php:1496
 msgid "This order has been synchronized with your Laravel application."
 msgstr "Cette commande a été synchronisée avec votre application Laravel."
 
-#: main.php:1506
 msgid "Order Not Synced"
 msgstr "Commande non synchronisée"
 
-#: main.php:1507
 msgid "This order has not been synchronized with your Laravel application yet."
 msgstr "Cette commande n'a pas encore été synchronisée avec votre application Laravel."
 
-#: main.php:1511
+msgid "Plugin Not Configured"
+msgstr "Plugin non configuré"
+
+msgid "Please configure the plugin settings to enable sync functionality."
+msgstr "Veuillez configurer les paramètres du plugin pour activer la fonctionnalité de synchronisation."
+
+msgid "Configure Plugin"
+msgstr "Configurer le plugin"
+
 msgid "Sync Order Now"
 msgstr "Synchroniser la commande maintenant"
 
-#: main.php:1520
-msgid "Current Status"
-msgstr "Statut actuel"
-
-#: main.php:1525
-msgid "Status:"
-msgstr "Statut :"
-
-#: main.php:1526
-msgid "Successfully Synced"
-msgstr "Synchronisé avec succès"
-
-#: main.php:1529
-msgid "Last Sync Time:"
-msgstr "Dernière heure de synchronisation :"
-
-#: main.php:1533
-msgid "Total Attempts:"
-msgstr "Total des tentatives :"
-
-
-
-#: main.php:1541
-msgid "Not Synced"
-msgstr "Non synchronisé"
-
-
-
-#: main.php:1549
-msgid "Last Error:"
-msgstr "Dernière erreur :"
-
-#: main.php:1559
-msgid "Available Actions"
-msgstr "Actions disponibles"
-
-#: main.php:1565
 msgid "Resync Order"
 msgstr "Resynchroniser la commande"
 
-#: main.php:1567
-msgid "Update the order information in your Laravel app."
-msgstr "Mettre à jour les informations de la commande dans votre application Laravel."
+msgid "Current Status"
+msgstr "Statut actuel"
 
-#: main.php:1572
-msgid "Sync Now"
-msgstr "Synchroniser maintenant"
+msgid "Status:"
+msgstr "Statut :"
 
-#: main.php:1574
-msgid "Manually sync this order to your Laravel application."
-msgstr "Synchroniser manuellement cette commande avec votre application Laravel."
+msgid "Successfully Synced"
+msgstr "Synchronisé avec succès"
 
-#: main.php:1588
+msgid "Last Sync Time:"
+msgstr "Dernière heure de synchronisation :"
+
+msgid "Total Attempts:"
+msgstr "Total des tentatives :"
+
+msgid "Not Synced"
+msgstr "Non synchronisé"
+
+msgid "Last Error:"
+msgstr "Dernière erreur :"
+
+msgid "Last sync: %s"
+msgstr "Dernière synchronisation : %s"
+
 msgid "Order Information"
 msgstr "Informations de la commande"
 
-#: main.php:1597
 msgid "Customer:"
 msgstr "Client :"
 
-#: main.php:1601
 msgid "Email:"
 msgstr "Email :"
 
-#: main.php:1605
 msgid "Total:"
 msgstr "Total :"
 
-
-
-#: main.php:1617
 msgid "Products"
 msgstr "Produits"
 
-#: main.php:1639
+msgid "SKU:"
+msgstr "SKU :"
+
 msgid "No SKU"
 msgstr "Aucun SKU"
 
-#: main.php:1642
 msgid "Qty:"
 msgstr "Qté :"
 
-#: main.php:1649
 msgid "No products found in this order."
 msgstr "Aucun produit trouvé dans cette commande."
 
-#: main.php:1656
 msgid "Sync History"
 msgstr "Historique de synchronisation"
 
-#: main.php:1710
+msgid "Duration: %s seconds"
+msgstr "Durée : %s secondes"
+
+# Sync Operation Strings
+msgid "Are you sure you want to manually sync this order to the Laravel app?"
+msgstr "Êtes-vous sûr de vouloir synchroniser manuellement cette commande avec l'application Laravel ?"
+
+msgid "Will sync"
+msgstr "Va synchroniser"
+
+msgid "Won't sync"
+msgstr "Ne synchronisera pas"
+
+msgid "⚠️ This product has no SKU and will not sync with the Made in China Laravel app.\n\nDo you want to continue anyway?"
+msgstr "⚠️ Ce produit n'a pas de SKU et ne se synchronisera pas avec l'application Laravel Made in China.\\n\\nVoulez-vous continuer quand même ?"
+
+msgid "Synced"
+msgstr "Synchronisé"
+
+msgid "Sync Now"
+msgstr "Synchroniser maintenant"
+
+msgid "Order not found"
+msgstr "Commande non trouvée"
+
+msgid "Plugin not configured. Please configure Laravel URL and webhook secret."
+msgstr "Plugin non configuré. Veuillez configurer l'URL Laravel et le secret du webhook."
+
+msgid "Order sync successful!"
+msgstr "Synchronisation de commande réussie !"
+
+msgid "Order sync failed. Check the logs for details."
+msgstr "Synchronisation de commande échouée. Vérifiez les journaux pour plus de détails."
+
+msgid "Order sync retry successful!"
+msgstr "Nouvelle tentative de synchronisation de commande réussie !"
+
+msgid "Order sync retry failed. Check the logs for details."
+msgstr "Nouvelle tentative de synchronisation de commande échouée. Vérifiez les journaux pour plus de détails."
+
+msgid "Plugin not configured"
+msgstr "Plugin non configuré"
+
+msgid "Sync completed successfully"
+msgstr "Synchronisation terminée avec succès"
+
+msgid "No products with SKUs found"
+msgstr "Aucun produit avec SKU trouvé"
+
+# Logs Page Strings
+msgid "Track all synchronization attempts and their status"
+msgstr "Suivre toutes les tentatives de synchronisation et leur statut"
+
+msgid "No sync logs found."
+msgstr "Aucun journal de synchronisation trouvé."
+
+msgid "Filter by status:"
+msgstr "Filtrer par statut :"
+
+msgid "All Status"
+msgstr "Tous les statuts"
+
+msgid "Success"
+msgstr "Succès"
+
+msgid "Failed"
+msgstr "Échec"
+
+msgid "Pending"
+msgstr "En attente"
+
+msgid "Filter"
+msgstr "Filtrer"
+
+msgid "Clear"
+msgstr "Effacer"
+
+msgid "Clear Logs"
+msgstr "Effacer les journaux"
+
+msgid "Order ID"
+msgstr "ID de commande"
+
+msgid "Customer"
+msgstr "Client"
+
+msgid "Response"
+msgstr "Réponse"
+
+msgid "Time"
+msgstr "Heure"
+
+msgid "Duration"
+msgstr "Durée"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "View Order"
+msgstr "Voir la commande"
+
+msgid "product(s)"
+msgstr "produit(s)"
+
+msgid "No products"
+msgstr "Aucun produit"
+
+msgid "Retry"
+msgstr "Réessayer"
+
+msgid "Enter number of days to keep logs (0 = clear all logs, 30 = keep last 30 days):"
+msgstr "Entrez le nombre de jours pour conserver les journaux (0 = effacer tous les journaux, 30 = conserver les 30 derniers jours) :"
+
+msgid "Please enter a valid number (0 or higher)"
+msgstr "Veuillez entrer un nombre valide (0 ou plus)"
+
+msgid "Are you sure you want to clear ALL sync logs? This cannot be undone."
+msgstr "Êtes-vous sûr de vouloir effacer TOUS les journaux de synchronisation ? Cela ne peut pas être annulé."
+
+msgid "Are you sure you want to clear logs older than %d days? This cannot be undone."
+msgstr "Êtes-vous sûr de vouloir effacer les journaux datant de plus de %d jours ? Cela ne peut pas être annulé."
+
+msgid "Error:"
+msgstr "Erreur :"
+
+msgid "Error clearing logs:"
+msgstr "Erreur lors de l'effacement des journaux :"
+
+msgid "Previous"
+msgstr "Précédent"
+
+msgid "Next"
+msgstr "Suivant"
+
+# Analytics Page Strings
+msgid "Analytics Dashboard"
+msgstr "Tableau de bord des analyses"
+
+msgid "Comprehensive sync performance and statistics overview"
+msgstr "Aperçu complet des performances et statistiques de synchronisation"
+
+msgid "Synchronization Statistics and Performance Metrics"
+msgstr "Statistiques de synchronisation et métriques de performance"
+
+msgid "View Logs"
+msgstr "Voir les journaux"
+
+msgid "TOTAL SYNCS"
+msgstr "TOTAL DES SYNCHRONISATIONS"
+
+msgid "All time synchronization attempts"
+msgstr "Tentatives de synchronisation de tous les temps"
+
+msgid "All Time"
+msgstr "Tous les temps"
+
+msgid "SUCCESSFUL"
+msgstr "RÉUSSIES"
+
+msgid "Orders synced successfully"
+msgstr "Commandes synchronisées avec succès"
+
+msgid "Active"
+msgstr "Actif"
+
+msgid "FAILED"
+msgstr "ÉCHOUÉES"
+
+msgid "Synchronization failures"
+msgstr "Échecs de synchronisation"
+
+msgid "Issue"
+msgstr "Problème"
+
+msgid "SUCCESS RATE"
+msgstr "TAUX DE RÉUSSITE"
+
+msgid "Overall sync reliability"
+msgstr "Fiabilité globale de synchronisation"
+
+msgid "Needs Attention"
+msgstr "Nécessite une attention"
+
+msgid "PENDING"
+msgstr "EN ATTENTE"
+
+msgid "Awaiting synchronization"
+msgstr "En attente de synchronisation"
+
+msgid "Waiting"
+msgstr "En attente"
+
+msgid "RECENT ACTIVITY"
+msgstr "ACTIVITÉ RÉCENTE"
+
+msgid "Syncs in the last week"
+msgstr "Synchronisations de la semaine dernière"
+
+msgid "7 Days"
+msgstr "7 jours"
+
+msgid "Daily Activity Table (Last 7 Days)"
+msgstr "Tableau d'activité quotidienne (7 derniers jours)"
+
+msgid "Detailed breakdown of synchronization activity by day"
+msgstr "Détail de l'activité de synchronisation par jour"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Success Rate"
+msgstr "Taux de réussite"
+
+msgid "No Data Available"
+msgstr "Aucune donnée disponible"
+
+msgid "Start by processing some orders to see sync statistics"
+msgstr "Commencez par traiter quelques commandes pour voir les statistiques de synchronisation"
+
+# Bulk Actions
 msgid "Sync to App"
 msgstr "Synchroniser vers l'App"
 
-#: main.php:1745
+# Orders List Column
 msgid "Sync Status"
 msgstr "Statut de synchronisation"
 
-#: main.php:1040
-msgid "SKU:"
-msgstr "SKU :"
+# Admin Notices and Debug
+msgid "MIC Woo to App Sync:"
+msgstr "Synchronisation App Made in China :"
+
+msgid "This plugin requires WooCommerce to be installed and activated."
+msgstr "Ce plugin nécessite que WooCommerce soit installé et activé."
+
+msgid "MIC Woo to App Sync plugin is active."
+msgstr "Le plugin de synchronisation App Made in China est actif."
+
+msgid "WooCommerce version:"
+msgstr "Version WooCommerce :"
+
+msgid "Unknown"
+msgstr "Inconnue"
+
+msgid "HPOS enabled:"
+msgstr "HPOS activé :"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"
+
+# Additional Missing Strings
+msgid "Resync"
+msgstr "Resynchroniser"
+
+msgid "Available Actions"
+msgstr "Actions disponibles"
+
+msgid "Update the order information in your Laravel app."
+msgstr "Mettre à jour les informations de la commande dans votre application Laravel."
+
+msgid "Manually sync this order to your Laravel application."
+msgstr "Synchroniser manuellement cette commande avec votre application Laravel."
+
+msgid "Please configure the plugin settings to enable manual sync."
+msgstr "Veuillez configurer les paramètres du plugin pour activer la synchronisation manuelle."
+
+msgid "Order Sync Failed"
+msgstr "Échec de synchronisation de commande"
+
+msgid "Previous sync attempts have failed. You can retry the synchronization."
+msgstr "Les tentatives de synchronisation précédentes ont échoué. Vous pouvez réessayer la synchronisation."
+
+msgid "Retry Sync"
+msgstr "Réessayer la synchronisation"
+
+msgid "Are you sure you want to retry syncing this order?"
+msgstr "Êtes-vous sûr de vouloir réessayer la synchronisation de cette commande ?"
+
+msgid "Retrying..."
+msgstr "Nouvelle tentative..."
+
+msgid "Retry failed:"
+msgstr "Nouvelle tentative échouée :"
+
+msgid "✅ Connection test completed successfully! Your Laravel app is properly configured and responding."
+msgstr "✅ Test de connexion terminé avec succès ! Votre application Laravel est correctement configurée et répond."
+
+msgid "❌ Authentication failed (HTTP 401). The webhook signature verification failed."
+msgstr "❌ Échec de l'authentification (HTTP 401). La vérification de la signature du webhook a échoué."
+
+msgid "💡 However, since your order sync is working, this might be a test-specific issue. Your actual sync functionality should work fine."
+msgstr "💡 Cependant, puisque votre synchronisation de commandes fonctionne, cela pourrait être un problème spécifique au test. Votre fonctionnalité de synchronisation réelle devrait fonctionner correctement."
+
+msgid "Possible causes:"
+msgstr "Causes possibles :"
+
+msgid "Test endpoint expects different authentication than sync endpoint"
+msgstr "Le point de terminaison de test attend une authentification différente du point de terminaison de synchronisation"
+
+msgid "CORS settings blocking test requests"
+msgstr "Paramètres CORS bloquant les requêtes de test"
+
+msgid "Laravel route middleware differences"
+msgstr "Différences dans le middleware des routes Laravel"
+
+msgid "❌ Endpoint not found (HTTP 404). Please check that the route exists in your Laravel app."
+msgstr "❌ Point de terminaison non trouvé (HTTP 404). Veuillez vérifier que la route existe dans votre application Laravel."
+
+msgid "❌ Unexpected response"
+msgstr "❌ Réponse inattendue"
+
+msgid "Security check failed"
+msgstr "Échec de la vérification de sécurité"
+
+msgid "Cleared %d log entries"
+msgstr "%d entrées de journal effacées"
+
+msgid "Failed to clear logs"
+msgstr "Échec de l'effacement des journaux"
+
+# New connection test strings
+msgid "Connection test completed successfully! Your Laravel app received and processed the test order data correctly."
+msgstr "Test de connexion terminé avec succès ! Votre application Laravel a reçu et traité les données de commande de test correctement."
+
+msgid "Test data sent:"
+msgstr "Données de test envoyées :"
+
+msgid "Domain:"
+msgstr "Domaine :"
+
+msgid "Site name:"
+msgstr "Nom du site :"
+
+msgid "Test order ID:"
+msgstr "ID de commande de test :"
+
+msgid "Incorrect webhook secret key"
+msgstr "Clé secrète webhook incorrecte"
+
+msgid "Signature verification method mismatch"
+msgstr "Incompatibilité de méthode de vérification de signature"
+
+msgid "CORS settings blocking requests"
+msgstr "Paramètres CORS bloquant les requêtes"
+
+msgid "❌ Validation error (HTTP 422): Your Laravel app rejected the test data."
+msgstr "❌ Erreur de validation (HTTP 422) : Votre application Laravel a rejeté les données de test."
+
+msgid "This usually means your Laravel validation rules are different from what the plugin is sending."
+msgstr "Cela signifie généralement que vos règles de validation Laravel sont différentes de ce que le plugin envoie."
+
+msgid "Raw response:"
+msgstr "Réponse brute :"
+
+msgid "Security check failed. Please try again."
+msgstr "Échec de la vérification de sécurité. Veuillez réessayer."
